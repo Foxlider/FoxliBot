@@ -174,19 +174,19 @@ async def playYtVid(target, link):
     voice = await joinChannel(target)
     print('Launching audio stream...')
     try : 
-        player = await voice.create_ytdl_player(link, use_avconv=False, after=lambda: closePlayer(player, voice))
+        player = await voice.create_ytdl_player(link, use_avconv=False)
     except Exception as error:
         try:
             print(error)
             print('==PLAYING FIRST ERROR FILE==')
             file = 'Spy_no0'+str(random.randint(1,3))+'.wav'
             print(file)
-            player = voice.create_ffmpeg_player(file, use_avconv=False, after=lambda: closePlayer(player, voice))
+            player = voice.create_ffmpeg_player(file, use_avconv=False)
         except Exception as error:
             print(error)
             print('==PRINT DEFAULT NOPE==')
-            player = await voice.create_ytdl_player('https://youtu.be/fxYOC3gDe7k', use_avconv=False, after=lambda: closePlayer(player, voice))
-    player.volume= 0.25
+            player = await voice.create_ytdl_player('https://youtu.be/fxYOC3gDe7k', use_avconv=False)
+    player.volume= 0.5
     #pprint(getmembers(player))
     print('Starting player')
     player.start()
@@ -197,6 +197,7 @@ async def playYtVid(target, link):
     print(waittime)
     while not player.is_done():
         await asyncio.sleep(waittime)
+    player.stop()
     print ('Disconnecting...')
     await voice.disconnect()
     print('DISCONNECTED')
@@ -216,7 +217,7 @@ async def playAudioFile(target, file='yee.wav'):
     except:
         player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False, after=lambda: closePlayer(player, voice))
     print('Starting player')
-    player.volume=0.05
+    player.volume=0.5
     player.start()
     while not player.is_done():
         await asyncio.sleep(1)
