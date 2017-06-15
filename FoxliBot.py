@@ -213,14 +213,15 @@ async def playAudioFile(target, file='yee.wav'):
     dict = 'data/audio/'
     print('Launching audio stream...')
     try:
-        player = voice.create_ffmpeg_player(dict+file, use_avconv=False, after=lambda: closePlayer(player, voice))
+        player = voice.create_ffmpeg_player(dict+file, use_avconv=False)
     except:
-        player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False, after=lambda: closePlayer(player, voice))
+        player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False)
     print('Starting player')
     player.volume=0.5
     player.start()
     while not player.is_done():
         await asyncio.sleep(1)
+    action = player.stop()
     print ('Disconnecting...')
     await voice.disconnect()
     print('DISCONNECTED')
