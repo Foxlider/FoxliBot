@@ -33,7 +33,6 @@ name='foxlibot'
 
 prefix = '**'
 
-
 def read_key():
     """
     Read a bot's key JSON to get it's token
@@ -51,6 +50,9 @@ global datadir
 datadir = os.path.dirname("./data/")
 if not os.path.exists(datadir):
     os.makedirs(datadir)
+audio = os.path.dirname("./data/audio")
+if not os.path.exists(audio):
+    os.makedirs(audio)
     
 def logMsg():
     dir = os.path.dirname("./logs/")
