@@ -352,8 +352,8 @@ async def addaudio(ctx, src=""):
     """
     Will add an audio file
     """
-    pprint(getmembers(ctx.message.attachments))
-    print(ctx.message.attachments)
+    #pprint(getmembers(ctx.message.attachments))
+    #print(ctx.message.attachments)
     for att in ctx.message.attachments:
         print(att['url'])
         link = att['url']
@@ -365,7 +365,7 @@ async def addaudio(ctx, src=""):
                     if not chunk:
                         break
                     f_handle.write(chunk)
-            await bot.say(filename + ' created ! Call it using `!audioplay '+filename)
+            await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
             return await response.release()
                 
     
