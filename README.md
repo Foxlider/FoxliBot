@@ -26,3 +26,6 @@ THE END
 ## [ Version 2.0 ]
 ###   [ 2.0a ]
 - Main version
+###   [ 2.0b ]
+- Sound corrections 
+- StackOverflow correction
