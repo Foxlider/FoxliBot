@@ -9,7 +9,7 @@
 # Basic informations. To change if you want to setup your own Bot.
 
 __program__ = "FoxliBot"
-__version__ = "2.0a"
+__version__ = "2.0b"
 
 from pprint import pprint
 from inspect import getmembers
