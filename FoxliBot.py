@@ -9,7 +9,7 @@
 # Basic informations. To change if you want to setup your own Bot.
 
 __program__ = "FoxliBot"
-__version__ = "2.0b"
+__version__ = "2.1a"
 
 from pprint import pprint
 from inspect import getmembers
@@ -363,8 +363,8 @@ async def addaudio(ctx, src=""):
             filename = att['filename']
             with open('data/audio/'+filename, 'wb') as f_handle:
                 print('Loading file ' + filename)
-                total_length response.headers.get('content-length')
-                total_length is None: # no content length header
+                total_length = response.headers.get('content-length')
+                if total_length is None: # no content length header
                     f_handle.write(response.content)
                 else:
                     while True:
@@ -377,7 +377,7 @@ async def addaudio(ctx, src=""):
                         done = int(50 * dl / total_length)
                         sys.stdout.write("\r[%s%s]" % ('#' * done, ' ' * (50-done)) )    
                         sys.stdout.flush()
-                    print('File downloaded')  
+                print('File downloaded')  
             await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
             return await response.release()
                 
