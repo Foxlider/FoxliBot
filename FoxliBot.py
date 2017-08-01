@@ -149,8 +149,9 @@ def closePlayer(player, voice):
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
+
+    
 def faudiostop():
-    global player
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
@@ -192,6 +193,7 @@ async def playYtVid(target, link):
             print(error)
             print('==PRINT DEFAULT NOPE==')
             player = await voice.create_ytdl_player('https://youtu.be/fxYOC3gDe7k', use_avconv=False)
+    global player
     player.volume= 0.5
     #pprint(getmembers(player))
     print('Starting player')
@@ -222,6 +224,7 @@ async def playAudioFile(target, file='yee.wav'):
         player = voice.create_ffmpeg_player(dict+file, use_avconv=False)
     except:
         player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False)
+    global player
     print('Starting player')
     player.volume=0.5
     player.start()
