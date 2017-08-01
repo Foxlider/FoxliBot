@@ -361,7 +361,7 @@ async def audioplay(ctx, src=""):
 
 ##CMD audiostop
 @bot.command()
-async def audiostop(ctx, src=""):
+async def audiostop(src=""):
     """
     Stop the audio player
     """
