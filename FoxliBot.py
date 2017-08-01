@@ -354,6 +354,21 @@ async def audioplay(ctx, src=""):
         await playAudioFile(target, src)
     except:
         pass
+
+##CMD audiolist
+@bot.command(pass_context=True)
+async def audiolist(ctx, src=""):
+    try:
+        """
+        Display the list of audio samples
+        """
+        txt = "Audio sample list :\n"
+        for file in os.listdir("data/audio"):
+            txt+="    `" + str(file) + "`\n"
+        print(txt)
+        await bot.say(txt)
+    except:
+        pass
 ##CMD addaudio
 @bot.command(pass_context=True)
 async def addaudio(ctx, src=""):
