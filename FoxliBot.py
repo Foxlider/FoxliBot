@@ -362,14 +362,22 @@ async def addaudio(ctx, src=""):
         async with aiohttp.get(link) as response:
             filename = att['filename']
             with open('data/audio/'+filename, 'wb') as f_handle:
-                print('Loading file :\n[')
-                while True:
-                    print('#',end='')
-                    chunk = await response.content.read(1024)
-                    if not chunk:
-                        break
-                    f_handle.write(chunk)
-                print(']\nFile downloaded')  
+                print('Loading file ' + filename)
+                total_length response.headers.get('content-length')
+                total_length is None: # no content length header
+                    f_handle.write(response.content)
+                else:
+                    while True:
+                        print('#',end='')
+                        chunk = await response.content.read(1024)
+                        if not chunk:
+                            break
+                        dl += len(chunk)
+                        f_handle.write(chunk)
+                        done = int(50 * dl / total_length)
+                        sys.stdout.write("\r[%s%s]" % ('#' * done, ' ' * (50-done)) )    
+                        sys.stdout.flush()
+                    print('File downloaded')  
             await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
             return await response.release()
                 
