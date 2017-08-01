@@ -142,17 +142,6 @@ def replace(string="", char_map=URLMAP):
     return voice
 #https://youtu.be/I67v_OaB3k8
 
-def closePlayer(player, voice):
-    """
-    Close player
-        player : player to close
-        voice = deprecated
-    """
-    global player
-    print('Closing player...')
-    action = player.stop()
-    print('Player closed.')
-
 def faudiopause():
     global player
     print('Pausing player...')
