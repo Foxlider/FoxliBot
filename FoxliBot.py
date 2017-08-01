@@ -335,7 +335,10 @@ async def ytplay(ctx, src=""):
     print(src)
     target = ctx.message.author.voice_channel
     load_opus_lib()
-    await playYtVid(target, src)
+    try : 
+        await playYtVid(target, src)
+    except : 
+        pass
     
 ##CMD audioplay
 @bot.command(pass_context=True)
@@ -347,8 +350,10 @@ async def audioplay(ctx, src=""):
         return bot.say("I can't play an empty text")
     target = ctx.message.author.voice_channel
     load_opus_lib()
-    await playAudioFile(target, src)
-
+    try:
+        await playAudioFile(target, src)
+    except:
+        pass
 ##CMD addaudio
 @bot.command(pass_context=True)
 async def addaudio(ctx, src=""):
