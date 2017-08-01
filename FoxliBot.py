@@ -287,7 +287,6 @@ async def choose(*choices : str):
     """Chooses between multiple choices."""
     await bot.say(random.choice(choices))
 
-
 ##CMD joined
 @bot.command()  
 async def joined(member : discord.Member):
@@ -358,10 +357,10 @@ async def audioplay(ctx, src=""):
 ##CMD audiolist
 @bot.command(pass_context=True)
 async def audiolist(ctx, src=""):
+    """
+    Display the list of audio samples
+    """
     try:
-        """
-        Display the list of audio samples
-        """
         txt = "Audio sample list :\n"
         for file in os.listdir("data/audio"):
             txt+="`" + str(file) + "`\n"
