@@ -24,9 +24,6 @@ import os
 import sys
 from json import load as jload
 
-player=None
-voice = None
-
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 'libopus.so.0', 'libopus.0.dylib']
 
 description = '''An example bot to showcase the discord.ext.commands extension
@@ -143,20 +140,27 @@ def replace(string="", char_map=URLMAP):
     return voice
 #https://youtu.be/I67v_OaB3k8
 
+def closePlayer(player, voice):
+    """
+    Close player
+        player : player to close
+        voice = deprecated
+    """
+    print('Closing player...')
+    action = player.stop()
+    print('Player closed.')
+
 def faudiopause():
-    global player
     print('Pausing player...')
     action = player.pause()
     print('Player paused.')
 
 def faudioresume():
-    global player
     print('Resuming player...')
     action = player.resume()
     print('Player resumed.')
     
 def faudiostop():
-    global player
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
@@ -169,12 +173,12 @@ async def joinChannel(channel):
         channel = the voice channel to join
     """
     print('Joining '+str(channel))
-    global voice
     try:
         voice = await bot.join_voice_channel(channel)
         print('CONNECTED')
     except Exception as error:
         print('TimeoutError : '+str(error))
+    return voice
         
 ##ASYNC playYtVid
 async def playYtVid(target, link):
@@ -184,8 +188,6 @@ async def playYtVid(target, link):
         target = channel to join
         link = video link
     """
-    global player
-    global voice
     voice = await joinChannel(target)
     print('Launching audio stream...')
     try : 
@@ -201,6 +203,7 @@ async def playYtVid(target, link):
             print(error)
             print('==PRINT DEFAULT NOPE==')
             player = await voice.create_ytdl_player('https://youtu.be/fxYOC3gDe7k', use_avconv=False)
+    global player
     player.volume= 0.5
     #pprint(getmembers(player))
     print('Starting player')
@@ -224,8 +227,6 @@ async def playAudioFile(target, file='yee.wav'):
         target = channel to join
         file = played file
     """
-    global player
-    global voice
     voice = await joinChannel(target)
     dict = 'data/audio/'
     print('Launching audio stream...')
@@ -233,6 +234,7 @@ async def playAudioFile(target, file='yee.wav'):
         player = voice.create_ffmpeg_player(dict+file, use_avconv=False)
     except:
         player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False)
+    global player
     print('Starting player')
     player.volume=0.5
     player.start()
@@ -376,10 +378,8 @@ async def audiostop(src=""):
     """
     Stop the audio player
     """
-    global voice
     try:
         faudiostop()
-        await voice.disconnect()
     except Exception as error:
         print(error)
         await bot.say("I'm not doing anything !")
