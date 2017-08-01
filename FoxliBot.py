@@ -208,14 +208,17 @@ async def playYtVid(target, link):
     #pprint(getmembers(player))
     print('Starting player')
     player.start()
-    try:
+    """try:
         waittime = player.duration
     except:
         waittime = 1
     print(waittime)
     while not player.is_done():
         await asyncio.sleep(waittime)
-    player.stop()
+    player.stop()"""
+    while not player.is_done():
+        await asyncio.sleep(1)
+    action = player.stop()
     print ('Disconnecting...')
     await voice.disconnect()
     print('DISCONNECTED')
