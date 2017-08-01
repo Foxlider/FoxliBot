@@ -159,7 +159,6 @@ def faudiostop():
     global player
     print('Closing player...')
     action = player.stop()
-    voice.disconnect()
     print('Player closed.')
    
     
@@ -377,8 +376,10 @@ async def audiostop(src=""):
     """
     Stop the audio player
     """
+    global voice
     try:
         faudiostop()
+        await voice.disconnect()
     except Exception as error:
         print(error)
         await bot.say("I'm not doing anything !")
