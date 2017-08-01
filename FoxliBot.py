@@ -24,6 +24,8 @@ import os
 import sys
 from json import load as jload
 
+player=None
+
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 'libopus.so.0', 'libopus.0.dylib']
 
 description = '''An example bot to showcase the discord.ext.commands extension
@@ -146,21 +148,25 @@ def closePlayer(player, voice):
         player : player to close
         voice = deprecated
     """
+    global player
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
 
 def faudiopause():
+    global player
     print('Pausing player...')
     action = player.pause()
     print('Player paused.')
 
 def faudioresume():
+    global player
     print('Resuming player...')
     action = player.resume()
     print('Player resumed.')
     
 def faudiostop():
+    global player
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
@@ -188,6 +194,7 @@ async def playYtVid(target, link):
         target = channel to join
         link = video link
     """
+    global player
     voice = await joinChannel(target)
     print('Launching audio stream...')
     try : 
@@ -227,6 +234,7 @@ async def playAudioFile(target, file='yee.wav'):
         target = channel to join
         file = played file
     """
+    global player
     voice = await joinChannel(target)
     dict = 'data/audio/'
     print('Launching audio stream...')
@@ -234,7 +242,6 @@ async def playAudioFile(target, file='yee.wav'):
         player = voice.create_ffmpeg_player(dict+file, use_avconv=False)
     except:
         player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False)
-    global player
     print('Starting player')
     player.volume=0.5
     player.start()
