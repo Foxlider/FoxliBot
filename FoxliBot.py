@@ -378,7 +378,7 @@ async def addaudio(ctx, src=""):
                         dl += len(chunk)
                         f_handle.write(chunk)
                         done = int(50 * dl / total_length)
-                        sys.stdout.write("\r[%s%s]" % ('#' * done, ' ' * (50-done)) )    
+                        sys.stdout.write("\r[%s%s] %sKB/%sKB" % ('#' * done, ' ' * (50-done), dl, total_length) )    
                         sys.stdout.flush()
                 print('File downloaded')  
             await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
