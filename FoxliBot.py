@@ -150,11 +150,21 @@ def closePlayer(player, voice):
     action = player.stop()
     print('Player closed.')
 
+def faudiopause():
+    print('Pausing player...')
+    action = player.pause()
+    print('Player paused.')
+
+def faudioresume():
+    print('Resuming player...')
+    action = player.resume()
+    print('Player resumed.')
     
 def faudiostop():
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
+   
     
 ##ASYNC joinChannel
 async def joinChannel(channel):
@@ -373,6 +383,30 @@ async def audiostop(src=""):
     except Exception as error:
         print(error)
         await bot.say("I'm not doing anything !")
+        
+##CMD audiopause
+@bot.command()
+async def audiopause(src=""):
+    """
+    Resume the audio player
+    """
+    try:
+        faudiopause()
+    except Exception as error:
+        print(error)
+        await bot.say("Can't do !")
+        
+##CMD audioresume
+@bot.command()
+async def audioresume(src=""):
+    """
+    Resume the audio player
+    """
+    try:
+        faudioresume()
+    except Exception as error:
+        print(error)
+        await bot.say("Can't do !")
     
 ##CMD audiolist
 @bot.command(pass_context=True)
