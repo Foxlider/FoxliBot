@@ -367,6 +367,8 @@ async def addaudio(ctx, src=""):
                 if total_length is None: # no content length header
                     f_handle.write(response.content)
                 else:
+                    dl = 0
+                    total_length = int(total_length)
                     while True:
                         print('#',end='')
                         chunk = await response.content.read(1024)
