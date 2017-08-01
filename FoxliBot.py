@@ -25,6 +25,7 @@ import sys
 from json import load as jload
 
 player=None
+voice = None
 
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 'libopus.so.0', 'libopus.0.dylib']
 
@@ -158,6 +159,7 @@ def faudiostop():
     global player
     print('Closing player...')
     action = player.stop()
+    voice.disconnect()
     print('Player closed.')
    
     
@@ -168,12 +170,12 @@ async def joinChannel(channel):
         channel = the voice channel to join
     """
     print('Joining '+str(channel))
+    global voice
     try:
         voice = await bot.join_voice_channel(channel)
         print('CONNECTED')
     except Exception as error:
         print('TimeoutError : '+str(error))
-    return voice
         
 ##ASYNC playYtVid
 async def playYtVid(target, link):
@@ -184,6 +186,7 @@ async def playYtVid(target, link):
         link = video link
     """
     global player
+    global voice
     voice = await joinChannel(target)
     print('Launching audio stream...')
     try : 
@@ -223,6 +226,7 @@ async def playAudioFile(target, file='yee.wav'):
         file = played file
     """
     global player
+    global voice
     voice = await joinChannel(target)
     dict = 'data/audio/'
     print('Launching audio stream...')
