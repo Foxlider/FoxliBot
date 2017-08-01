@@ -364,7 +364,7 @@ async def audiolist(ctx, src=""):
         """
         txt = "Audio sample list :\n"
         for file in os.listdir("data/audio"):
-            txt+="    `" + str(file) + "`\n"
+            txt+="`" + str(file) + "`\n"
         print(txt)
         await bot.say(txt)
     except:
