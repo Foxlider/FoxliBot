@@ -371,15 +371,14 @@ async def addaudio(ctx, src=""):
                     dl = 0
                     total_length = int(total_length)
                     while True:
-                        print('#',end='')
                         chunk = await response.content.read(1024)
                         if not chunk:
                             break
                         dl += len(chunk)
                         f_handle.write(chunk)
                         done = int(50 * dl / total_length)
-                        dled = round(dl/1000,1)
-                        total = round(total_length/1000,1)
+                        dled = round(dl/1024,1)
+                        total = round(total_length/1024,1)
                         sys.stdout.write("\r[%s%s] %sKB/%sKB" % ('#' * done, ' ' * (50-done), dled, total) )    
                         sys.stdout.flush()
                 print('File downloaded')  
