@@ -9,7 +9,7 @@
 # Basic informations. To change if you want to setup your own Bot.
 
 __program__ = "FoxliBot"
-__version__ = "2.1a"
+__version__ = "2.2b"
 
 from pprint import pprint
 from inspect import getmembers
@@ -146,6 +146,11 @@ def closePlayer(player, voice):
         player : player to close
         voice = deprecated
     """
+    print('Closing player...')
+    action = player.stop()
+    print('Player closed.')
+def faudiostop():
+    global player
     print('Closing player...')
     action = player.stop()
     print('Player closed.')
@@ -354,6 +359,18 @@ async def audioplay(ctx, src=""):
     except:
         pass
 
+##CMD audiostop
+@bot.command()
+async def audiostop(ctx, src=""):
+    """
+    Stop the audio player
+    """
+    try:
+        faudiostop()
+    except Exception as error:
+        print(error)
+        await bot.say("I'm not doing anything !")
+    
 ##CMD audiolist
 @bot.command(pass_context=True)
 async def audiolist(ctx, src=""):
