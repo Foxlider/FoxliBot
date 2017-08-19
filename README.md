@@ -9,6 +9,11 @@ New Discord bot made to replace DLBot
 
 But honestly, why would you run this bot if mine is already running ?
 
+# Use : 
+Click on the link below to make the bot join a server :
+https://discordapp.com/oauth2/authorize?&client_id=324471059816382464&scope=bot
+
+
 # Commands
   - shutdown             : To shutdown the BOT (quite obvious)
   - addaudio [file]      : Add a file to be played with audioplay
