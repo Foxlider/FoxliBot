@@ -11,7 +11,7 @@ But honestly, why would you run this bot if mine is already running ?
 
 # Use : 
 Click on the link below to make the bot join a server :
-https://discordapp.com/oauth2/authorize?&client_id=324471059816382464&scope=bot
+ https://discordapp.com/oauth2/authorize?&client_id=324471059816382464&scope=bot
 
 
 # Commands
