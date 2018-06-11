@@ -1,16 +1,3 @@
-
-## Notes
-
-
-# Url to connect tht bot to a server: https://discordapp.com/oauth2/authorize?&client_id=324471059816382464&scope=bot
-# id 324471059816382464
-
-
-# Basic informations. To change if you want to setup your own Bot.
-
-__program__ = "FoxliBot"
-__version__ = "2.2b"
-
 from pprint import pprint
 from inspect import getmembers
 import discord
@@ -26,13 +13,20 @@ from json import load as jload
 
 OPUS_LIBS = ['libopus-0.x86.dll', 'libopus-0.x64.dll', 'libopus-0.dll', 'libopus.so.0', 'libopus.0.dylib']
 
-description = '''An example bot to showcase the discord.ext.commands extension
-module.
-There are a number of utility commands being showcased here.'''
+description = '''FoxliBot being FoxliBot, expect me to crash.'''
 
 name='foxlibot'
 
-prefix = '**'
+__program__ = "FoxliBot"
+__version__ = "3.1b"
+
+sampledir = 'data/audio/'
+
+prefix = '!'
+
+
+### ______________
+### Main Functions
 
 def read_key():
     """
@@ -47,59 +41,6 @@ def read_key():
         return key
     return None
 
-global datadir
-datadir = os.path.dirname("./data/")
-if not os.path.exists(datadir):
-    os.makedirs(datadir)
-audio = os.path.dirname("./data/audio")
-if not os.path.exists(audio):
-    os.makedirs(audio)
-    
-def logMsg():
-    dir = os.path.dirname("./logs/")
-    if not os.path.exists(dir):
-            os.makedirs(dir)
-    today = datetime.datetime.now()
-    logsFile=open(dir+"/"+str(today)+".txt","a")
-    log = "oui"
-    logsFile.write(log)
-    print(log,end='')
-        
-def get_cmd_message(uid=None):
-    """
-    Search the given channel for the last message
-    aka: the command that was given to the bot
-    """
-    if len(bot.messages) == 0:
-        raise Exception("Wat")
-    c_uid = lambda u, v: True
-    if uid is not None:
-        c_uid = lambda u, v: u == v
-    res = [msg for msg in bot.messages
-            if msg.channel == chan
-            and msg.author.id != bot.user.id
-            and c_uid(uid, msg.author.id)]
-    return res[-1]    
-    
-def get_last_message(uid=None):
-    """
-    Search the given channel for the second-to-last message
-    aka: the message before the command was given to the bot
-    """
-    if len(bot.messages) == 0:
-        raise Exception("Wat")
-    if len(bot.messages) == 1:
-        return None
-    c_uid = lambda u, v: True
-    if uid is not None:
-        c_uid = lambda u, v: u == v
-    res = [msg for msg in bot.messages
-            if  msg.author.id != bot.user.id
-            and c_uid(uid, msg.author.id)]
-    if len(res) <= 1:
-        return None
-    return res[-2]
-    
 def load_opus_lib(opus_libs=OPUS_LIBS):
     """
     Load opus libs for voice handling
@@ -114,384 +55,390 @@ def load_opus_lib(opus_libs=OPUS_LIBS):
         except OSError:
             pass
 
-##Many Functions : 
+
+### ____________
+### Data Classes
+
+class VoiceEntry:
+    def __init__(self, message, player):
+        self.requester = message.author
+        self.channel = message.channel
+        self.player = player
+
+    def __str__(self):
+        try: 
+            fmt = '*{0.title}*'
+        except:
+            fmt = '*audio sample*'
+        try : 
+            duration = self.player.duration
+        except:
+            duration = False
+        if duration:
+            fmt = fmt + ' [{0[0]}m {0[1]}s]'.format(divmod(duration, 60))
+        return fmt.format(self.player, self.requester)
+
+class VoiceState:
+    def __init__(self, bot):
+        self.current = None
+        self.voice = None
+        self.bot = bot
+        self.play_next_song = asyncio.Event()
+        self.songs = asyncio.Queue()
+        self.skip_votes = set() # a set of user_ids that voted
+        self.audio_player = self.bot.loop.create_task(self.audio_player_task())
+
+    def is_playing(self):
+        if self.voice is None or self.current is None:
+            return False
+
+        player = self.current.player
+        return not player.is_done()
+
+    @property
+    def player(self):
+        return self.current.player
+
+    def skip(self):
+        self.skip_votes.clear()
+        if self.is_playing():
+            self.player.stop()
+
+    def toggle_next(self):
+        self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
+
+    async def audio_player_task(self):
+        while True:
+            self.play_next_song.clear()
+            self.current = await self.songs.get()
+            await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
+            self.current.player.start()
+            await self.play_next_song.wait()
 
 
-URLMAP = {"+": "%2B",
-            " ": "+", 
-            "%": "%25", 
-            "&": "%26", 
-            "@": "%40", 
-            "#": "%23", 
-            "$": "%24", 
-            "=": "%3D"}
+### _________
+### Bot class
 
-def replace(string="", char_map=URLMAP):
+class Music:
+    """Voice related commands.
+
+    Works in multiple servers at once.
     """
-    Used to convert special chars in links for the ytsearch
-    """
-    "Replace a string with URL safe characters (' ' => '%20')"
-    s = string
-    for k, v in char_map.items():
-        s = s.replace(k, v)
-    return s
+    def __init__(self, bot):
+        self.bot = bot
+        self.voice_states = {}
+        load_opus_lib()
+
+    def get_voice_state(self, server):
+        state = self.voice_states.get(server.id)
+        if state is None:
+            state = VoiceState(self.bot)
+            self.voice_states[server.id] = state
+        return state
 
 
-    return voice
-#https://youtu.be/I67v_OaB3k8
+    ##CMD shutdown
+    @commands.command(passgett=True)
+    async def shutdown(self, ctx):
+        """
+        Kill the process
+        """
+        await ctx.invoke(self.stop)
+        print("Shutting down...")
+        await bot.say("Shutting down...")
+        bot.logout()
+        print("Logged out...")
+        bot.close()
+        print("Closed")
+        quit()
 
-def closePlayer(player, voice):
-    """
-    Close player
-        player : player to close
-        voice = deprecated
-    """
-    print('Closing player...')
-    action = player.stop()
-    print('Player closed.')
+    ##CMD cool
+    @commands.group(pass_context=True)
+    async def cool(self, ctx):
+        """Says if a user is cool.
+        In reality this just checks if a subcommand is being invoked.
+        """
+        print("Command 'cool' called")
+        bot.delete_message(ctx.message)
+        if ctx.invoked_subcommand is None:
+            await bot.say('No, {0.subcommand_passed} is not cool'.format(ctx))
+    @cool.command(name='bot')
+    async def _bot(self):
+        """Is the bot cool?"""
+        await bot.say('Yes, the bot is cool.')
 
-def faudiopause():
-    print('Pausing player...')
-    action = player.pause()
-    print('Player paused.')
+    ##CMD status
+    @commands.command(pass_context=True, no_pm=True)
+    async def status(self, ctx, *,status='I am DLBot but better'):
+        """Set a new status"""
+        print('!status => ' + status)
+        #await bot.say("Ok, changing my status to : '" + str(status) + "'")
+        bot.delete_message(ctx.message)
+        await bot.change_presence(game=discord.Game(name=status))
 
-def faudioresume():
-    print('Resuming player...')
-    action = player.resume()
-    print('Player resumed.')
-    
-def faudiostop():
-    print('Closing player...')
-    action = player.stop()
-    print('Player closed.')
-   
-    
-##ASYNC joinChannel
-async def joinChannel(channel):
-    """
-    Automaticly join a voice channel
-        channel = the voice channel to join
-    """
-    print('Joining '+str(channel))
-    try:
-        voice = await bot.join_voice_channel(channel)
-        print('CONNECTED')
-    except Exception as error:
-        print('TimeoutError : '+str(error))
-    return voice
-        
-##ASYNC playYtVid
-async def playYtVid(target, link):
-    """
-    Play a youtube video's audio
-    Will play a sound if the link is incorrect
-        target = channel to join
-        link = video link
-    """
-    voice = await joinChannel(target)
-    print('Launching audio stream...')
-    try : 
-        player = await voice.create_ytdl_player(link, use_avconv=False)
-    except Exception as error:
+    ##CMD version
+    @commands.command(pass_context=True)
+    async def version(self, ctx):
+        """Displays the version of the bot"""
+        print("Command 'version' called")
+        bot.delete_message(ctx.message)
+        print("I am *{} v{}*.\nNice to meet you {}.".format(__program__, __version__, ctx.message.author.mention))
+        await bot.say("I am *{} v{}*.\nNice to meet you {}.".format(__program__, __version__, ctx.message.author.mention))
+    ##CMD roll
+    @commands.command(pass_context=True)
+    async def roll(self, ctx, dice : str):
+        """Rolls a dice in NdN format."""
+        print("Command 'roll' called")
+        bot.delete_message(ctx.message)
         try:
-            print(error)
-            print('==PLAYING FIRST ERROR FILE==')
-            file = 'Spy_no0'+str(random.randint(1,3))+'.wav'
-            print(file)
-            player = voice.create_ffmpeg_player(file, use_avconv=False)
-        except Exception as error:
-            print(error)
-            print('==PRINT DEFAULT NOPE==')
-            player = await voice.create_ytdl_player('https://youtu.be/fxYOC3gDe7k', use_avconv=False)
-    global player
-    player.volume= 0.5
-    #pprint(getmembers(player))
-    print('Starting player')
-    player.start()
-    """try:
-        waittime = player.duration
-    except:
-        waittime = 1
-    print(waittime)
-    while not player.is_done():
-        await asyncio.sleep(waittime)
-    player.stop()"""
-    while not player.is_done():
-        await asyncio.sleep(1)
-    action = player.stop()
-    print ('Disconnecting...')
-    await voice.disconnect()
-    print('DISCONNECTED')
-    
-##ASYNC playAudioFile
-async def playAudioFile(target, file='yee.wav'):
-    """
-    Plays and audio file located in data/audio
-        target = channel to join
-        file = played file
-    """
-    voice = await joinChannel(target)
-    dict = 'data/audio/'
-    print('Launching audio stream...')
-    try:
-        player = voice.create_ffmpeg_player(dict+file, use_avconv=False)
-    except:
-        player = voice.create_ffmpeg_player(dict+'yee.wav', use_avconv=False)
-    global player
-    print('Starting player')
-    player.volume=0.5
-    player.start()
-    while not player.is_done():
-        await asyncio.sleep(1)
-    action = player.stop()
-    print ('Disconnecting...')
-    await voice.disconnect()
-    print('DISCONNECTED')
-    
-##ASYNC searchvid
-async def searchvid(ctx, src):
-    if not src:
-        return bot.say("I can't search an empty text")
-    print(src)
-    tube = "https://www.youtube.com"
-    query = tube + "/results?search_query=" + replace(src)
-    print(query)
-    async with aiohttp.get(query) as resp:
-        if resp.status != 200:
-            return await bot.say("Failed to retrieve search. STATUS:"+str(resp.status))
+            rolls, limit = map(int, dice.split('d'))
+        except Exception:
+            await bot.say('Format has to be in NdN!')
+            return
 
-    # Build a BS parser and find all Youtube links on the page
-        txt = await resp.text()
-        bs = BS(txt, "html.parser")
-        main_d = bs.find('div', id='results')
-        if not main_d:
-            return bot.say('Failed to find results')
-        items = main_d.find_all("div", class_="yt-lockup-content")
-        if not items:
-            return await bot.say("No videos found")
-        # Loop until we find a valid non-advertisement link
-        for container in items:
-            href = container.find('a', class_='yt-uix-sessionlink')['href']
-            if href.startswith('/watch'):
-                return await bot.say(tube+href)        
-        return await bot.say("No YouTube video found")
+        msg = '{} rolled {}d{}'.format(ctx.message.author.mention, rolls, limit)
+        for r in range(rolls) :
+            msg += "\n It's a "+str(random.randint(1, limit))+" !"
+        await bot.say(msg)
+
         
-##BOT and async functions
+    ##CMD choose
+    @commands.command(pass_context=True, description='For when you wanna settle the score some other way')
+    async def choose(self, ctx, *choices : str):
+        """Chooses between multiple choices."""
+        print("Command 'choose' called")
+        await bot.say(random.choice(choices))
 
-bot = commands.Bot(command_prefix='!', description=description)
+
+    ##CMD addaudio
+    @commands.command(pass_context=True)
+    async def addaudio(self, ctx, src=""):
+        """
+        Will add an audio file
+        """
+        #pprint(getmembers(ctx.message.attachments))
+        #print(ctx.message.attachments)
+        for att in ctx.message.attachments:
+            print(att['url'])
+            link = att['url']
+            async with aiohttp.get(link) as response:
+                filename = att['filename']
+                with open('data/audio/'+filename, 'wb') as f_handle:
+                    print('Loading file ' + filename)
+                    total_length = response.headers.get('content-length')
+                    if total_length is None: # no content length header
+                        f_handle.write(response.content)
+                    else:
+                        dl = 0
+                        total_length = int(total_length)
+                        while True:
+                            chunk = await response.content.read(1024)
+                            if not chunk:
+                                break
+                            dl += len(chunk)
+                            f_handle.write(chunk)
+                            done = int(50 * dl / total_length)
+                            dled = round(dl/1024,2)
+                            total = round(total_length/1024,2)
+                            sys.stdout.write("\r[%s%s] %sKB / %sKB" % ('#' * done, ' ' * (50-done), dled, total) )    
+                            sys.stdout.flush()
+                    print('\nFile downloaded')  
+                await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
+                return await response.release()
+    
+    ##CMD volume
+    @commands.command(pass_context=True, no_pm=True)
+    async def volume(self, ctx, value : int):
+        """Sets the volume of the currently playing song."""
+        print("Command 'volume' called")
+        bot.delete_message(ctx.message)
+        state = self.get_voice_state(ctx.message.server)
+        if state.is_playing():
+            player = state.player
+            player.volume = value / 100
+            await self.bot.say('Volume à {:.0%}'.format(player.volume))
+
+    ##CMD pause
+    @commands.command(pass_context=True, no_pm=True)
+    async def pause(self, ctx):
+        """Pauses the currently played song."""
+        print("Command 'pause' called")
+        bot.delete_message(ctx.message)
+        state = self.get_voice_state(ctx.message.server)
+        if state.is_playing():
+            player = state.player
+            player.pause()
+
+    ##CMD resume
+    @commands.command(pass_context=True, no_pm=True)
+    async def resume(self, ctx):
+        """Resumes the currently played song."""
+        print("Command 'resume' called")
+        bot.delete_message(ctx.message)
+        state = self.get_voice_state(ctx.message.server)
+        if state.is_playing():
+            player = state.player
+            player.resume()
+
+    ##CMD stop
+    @commands.command(pass_context=True, no_pm=True)
+    async def stop(self, ctx):
+        """Stops playing audio and leaves the voice channel.
+
+        This also clears the queue.
+        """
+        print("Command 'stop' called")
+        bot.delete_message(ctx.message)
+        server = ctx.message.server
+        state = self.get_voice_state(server)
+
+        if state.is_playing():
+            player = state.player
+            player.stop()
+
+        try:
+            state.audio_player.cancel()
+            del self.voice_states[server.id]
+            await state.voice.disconnect()
+        except:
+            pass
+
+
+    ##CMD skip
+    @commands.command(pass_context=True, no_pm=True)
+    async def skip(self, ctx):
+        """Vote to skip a song.
+        """
+        print("Command 'skip' called")
+        bot.delete_message(ctx.message)
+        state = self.get_voice_state(ctx.message.server)
+        if not state.is_playing():
+            await self.bot.say('Not playing...')
+            return
+        else :
+            state.skip()
+            await self.bot.say('Next song...')
+
+    ##CMD playing
+    @commands.command(pass_context=True, no_pm=True)
+    async def playing(self, ctx):
+        """Shows info about the currently played song."""
+        print("Command 'playing' called")
+        state = self.get_voice_state(ctx.message.server)
+        if state.current is None:
+            await self.bot.say('Not playing...')
+        else:
+            await self.bot.say('Playing {}'.format(state.current))
+
+    ##CMD summon
+    @commands.command(pass_context=True, no_pm=True)
+    async def summon(self, ctx):
+        """Summons the bot to join your voice channel."""
+        print("Command 'summon' called")
+        summoned_channel = ctx.message.author.voice_channel
+        if summoned_channel is None:
+            await self.bot.say('You are not in a vocal channel.')
+            return False
+
+        state = self.get_voice_state(ctx.message.server)
+        if state.voice is None:
+            state.voice = await self.bot.join_voice_channel(summoned_channel)
+        else:
+            await state.voice.move_to(summoned_channel)
+
+        return True
+
+    ##CMD audiolist
+    @commands.command(pass_context=True)
+    async def audiolist(self, ctx, src=""):
+        """
+        Display the list of audio samples
+        """
+        print("Command 'audiolist' called")
+        try:
+            txt = "Audio sample list :\n"
+            for file in os.listdir("data/audio"):
+                txt+="`" + str(file) + "`\n"
+            print(txt)
+            await bot.say(txt)
+        except:
+            pass
+
+    ##CMD ytsearchplay
+    @commands.command(pass_context=True)
+    async def ytplay(self, ctx, *, src : str):
+        """
+        Get the first Youtube search result video and play it
+        Example: !yt how do I take a screenshot
+        """
+        print("Command 'ytplay' called")
+        bot.delete_message(ctx.message)
+
+        state = self.get_voice_state(ctx.message.server)
+        opts = {
+            'default_search': 'auto',
+            'quiet': True,
+            'reconnect' : 1,
+            'reconnect_streamed' : 1,
+            'reconnect_delay_max' : 5,
+        }
+
+        if state.voice is None:
+            success = await ctx.invoke(self.summon)
+            if not success:
+                return
+
+        try:
+            player = await state.voice.create_ytdl_player(src, ytdl_options=opts, after=state.toggle_next)
+        except Exception as e:
+            fmt = 'ALERT an error occured : ```py\n{}: {}\n```'
+            await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+            await ctx.invoke(self.stop)
+        else:
+            player.volume = 0.25
+            entry = VoiceEntry(ctx.message, player)
+            await self.bot.say(str(entry) + ' ajoutée')
+            await state.songs.put(entry)
+
+    ##CMD audioplay
+    @commands.command(pass_context=True)
+    async def audioplay(self, ctx, src=""):
+        """
+        Will play a file
+        """
+        print("Command 'audioplay' called")
+        print(src)
+        for root, dirs, files in os.walk(sampledir):  
+            for filename in files:
+                print(filename)
+                if src in filename:
+                    break
+        if not src or src=="":
+            return bot.say("I can't play an empty text")
+        state = self.get_voice_state(ctx.message.server)
+
+        if state.voice is None:
+            success = await ctx.invoke(self.summon)
+            if not success:
+                return
+        player = state.voice.create_ffmpeg_player(sampledir+filename, use_avconv=False)
+        
+        player.volume=0.5
+        player.start()
+        while not player.is_done():
+            await asyncio.sleep(1)
+        await ctx.invoke(self.stop)
+
+
+
+### ________________
+### Startup commands
+
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'), description=description)
+bot.add_cog(Music(bot))
 
 @bot.event
 async def on_ready():
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('------')
-    
+    print('Logged in as:\n{0} \n(ID: {0.id})\n------'.format(bot.user))
 
-##CMD roll
-@bot.command()
-async def roll(dice : str):
-    """Rolls a dice in NdN format."""
-    try:
-        rolls, limit = map(int, dice.split('d'))
-    except Exception:
-        await bot.say('Format has to be in NdN!')
-        return
-
-    result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-    await bot.say(result)
-    
-    
-##CMD choose
-@bot.command(description='For when you wanna settle the score some other way')
-async def choose(*choices : str):
-    """Chooses between multiple choices."""
-    await bot.say(random.choice(choices))
-
-##CMD joined
-@bot.command()  
-async def joined(member : discord.Member):
-    """Says when a member joined."""
-    await bot.say('{0.name} joined in {0.joined_at}'.format(member))
-##CMD status
-@bot.command()
-async def status(status='I am DLBot but better'):
-    """Set a new status"""
-    await bot.change_presence(game=discord.Game(name=status))
-
-##CMD cool
-@bot.group(pass_context=True)
-async def cool(ctx):
-    """Says if a user is cool.
-    In reality this just checks if a subcommand is being invoked.
-    """
-    if ctx.invoked_subcommand is None:
-        await bot.say('No, {0.subcommand_passed} is not cool'.format(ctx))
-@cool.command(name='bot')
-async def _bot():
-    """Is the bot cool?"""
-    await bot.say('Yes, the bot is cool.')
-    
-##CMD shutdown
-@bot.command()
-async def shutdown():
-    """
-    Kill the process
-    """
-    bot.logout()
-    bot.close()
-    exit()
-
-##CMD ytplay
-@bot.command(pass_context=True)
-async def ytplay(ctx, src=""):
-    """
-    Will play a youtube video's audio
-    """
-    if not src or src=="":
-        return bot.say("I can't search an empty text")
-    if "youtu" not in src:
-        return bot.say('Use a valid link')
-    print(src)
-    target = ctx.message.author.voice_channel
-    load_opus_lib()
-    try : 
-        await playYtVid(target, src)
-    except : 
-        pass
-    
-##CMD audioplay
-@bot.command(pass_context=True)
-async def audioplay(ctx, src=""):
-    """
-    Will play a file
-    """
-    if not src or src=="":
-        return bot.say("I can't play an empty text")
-    target = ctx.message.author.voice_channel
-    load_opus_lib()
-    try:
-        await playAudioFile(target, src)
-    except:
-        pass
-
-##CMD audiostop
-@bot.command()
-async def audiostop(src=""):
-    """
-    Stop the audio player
-    """
-    try:
-        faudiostop()
-    except Exception as error:
-        print(error)
-        await bot.say("I'm not doing anything !")
-        
-##CMD audiopause
-@bot.command()
-async def audiopause(src=""):
-    """
-    Resume the audio player
-    """
-    try:
-        faudiopause()
-    except Exception as error:
-        print(error)
-        await bot.say("Can't do !")
-        
-##CMD audioresume
-@bot.command()
-async def audioresume(src=""):
-    """
-    Resume the audio player
-    """
-    try:
-        faudioresume()
-    except Exception as error:
-        print(error)
-        await bot.say("Can't do !")
-    
-##CMD audiolist
-@bot.command(pass_context=True)
-async def audiolist(ctx, src=""):
-    """
-    Display the list of audio samples
-    """
-    try:
-        txt = "Audio sample list :\n"
-        for file in os.listdir("data/audio"):
-            txt+="`" + str(file) + "`\n"
-        print(txt)
-        await bot.say(txt)
-    except:
-        pass
-##CMD addaudio
-@bot.command(pass_context=True)
-async def addaudio(ctx, src=""):
-    """
-    Will add an audio file
-    """
-    #pprint(getmembers(ctx.message.attachments))
-    #print(ctx.message.attachments)
-    for att in ctx.message.attachments:
-        print(att['url'])
-        link = att['url']
-        async with aiohttp.get(link) as response:
-            filename = att['filename']
-            with open('data/audio/'+filename, 'wb') as f_handle:
-                print('Loading file ' + filename)
-                total_length = response.headers.get('content-length')
-                if total_length is None: # no content length header
-                    f_handle.write(response.content)
-                else:
-                    dl = 0
-                    total_length = int(total_length)
-                    while True:
-                        chunk = await response.content.read(1024)
-                        if not chunk:
-                            break
-                        dl += len(chunk)
-                        f_handle.write(chunk)
-                        done = int(50 * dl / total_length)
-                        dled = round(dl/1024,2)
-                        total = round(total_length/1024,2)
-                        sys.stdout.write("\r[%s%s] %sKB / %sKB" % ('#' * done, ' ' * (50-done), dled, total) )    
-                        sys.stdout.flush()
-                print('\nFile downloaded')  
-            await bot.say(filename + ' created ! Call it using `!audioplay '+filename+'`')
-            return await response.release()
-                
-    
-#FIXME broken
-##CMD ytsearch
-@bot.command(pass_context=True)
-async def ytsearch(ctx, src=""):
-    """
-    Get the first Youtube search result video
-    Example: !yt how do I take a screenshot
-    """
-    origChan = ctx.message.channel
-    await bot.send_typing(origChan)
-    src = ctx.message.content.replace('!ytsearch ','')
-    await searchvid(ctx, src)
-
-##CMD ytsearchplay
-@bot.command(pass_context=True)
-async def ytsearchplay(ctx, src=""):
-    """
-    Get the first Youtube search result video and play it
-    Example: !yt how do I take a screenshot
-    """
-    bot.delete_message(ctx.message)
-    target = ctx.message.author.voice_channel
-    origChan = ctx.message.channel
-    await bot.send_typing(origChan)
-    src = ctx.message.content.replace('!ytsearchplay ','')
-    mgs = await searchvid(ctx, src)
-    load_opus_lib()
-    src = mgs.content
-    bot.delete_message(mgs)
-    await playYtVid(target, src)
-    
-    
 bot.run(read_key())
