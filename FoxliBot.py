@@ -396,12 +396,11 @@ class Music:
         upcoming = list(itertools.islice(player.queue._queue, 0, 5))
 
         fmt = '\n'.join(f'**`{_["title"]}`**' for _ in upcoming)
-        embed = discord.Embed(title=f'Upcoming - Next {len(upcoming)}', description=fmt)
 
-        await ctx.send(embed=embed)
+        await ctx.send(f'**     Upcoming - Next {len(upcoming)}**\n{fmt}')
         await ctx.message.delete()
 
-    @commands.command(name='playing', aliases=['np', 'current', 'currentsong', 'playing'])
+    @commands.command(name='playing', aliases=['np', 'current', 'currentsong'])
     async def now_playing_(self, ctx):
         """Display information about the currently playing song."""
         vc = ctx.voice_client
