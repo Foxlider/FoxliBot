@@ -1,6 +1,4 @@
-﻿using Sharpy.Properties;
-
-namespace Sharpy
+﻿namespace Sharpy
 {
     internal class SharpyConfiguration
     {
@@ -10,14 +8,26 @@ namespace Sharpy
         public SharpyConfiguration()
         {
             this.Prefix = "..";
-            if (Settings.Default.DEV_MODE)
-                this.Tokens.Discord = "NTM4MzA2ODIxMzMzNzEyOTE2.DyyA9A.NR6IO59ORsQIcqVtY7jWxrH-IAo";
+            if (Sharpy.DEV_MODE)
+                this.Tokens = new Tokens("NTM4MzA2ODIxMzMzNzEyOTE2.DyyA9A.NR6IO59ORsQIcqVtY7jWxrH-IAo");
             else
-                this.Tokens.Discord = "";
+                this.Tokens = new Tokens();
+        }
+        public SharpyConfiguration(string prefix)
+        {
+            this.Prefix = prefix;
+            if (Sharpy.DEV_MODE)
+                this.Tokens = new Tokens("NTM4MzA2ODIxMzMzNzEyOTE2.DyyA9A.NR6IO59ORsQIcqVtY7jWxrH-IAo");
+            else
+                this.Tokens = new Tokens();
         }
     }
     internal class Tokens
     {
         public string Discord { get; set; }
+        public Tokens(string discord = "")
+        {
+            this.Discord = discord;
+        }
     }
 }

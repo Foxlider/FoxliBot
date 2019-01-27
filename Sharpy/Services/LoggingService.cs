@@ -39,5 +39,16 @@ namespace Sharpy
 
             return Console.Out.WriteLineAsync(logText);       // Write the log text to the console
         }
+
+        
     }
+
+    public class Log
+    {
+        public static void Information(string message)
+        {
+            Console.WriteLine(message, ConsoleColor.Blue);
+        }
+    }
+     
 }

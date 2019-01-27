@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Reflection;
 using Discord;
@@ -7,25 +7,19 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Newtonsoft.Json;
-using Sharpy.Properties;
 using Microsoft.Extensions.Configuration;
+using Sharpy.Services.YouTube;
+using Sharpy.Services;
 
 namespace Sharpy
 {
     class Sharpy
     {
         private CommandService commands;
-        private DiscordSocketClient client;
+        public static DiscordSocketClient client;
         private IServiceProvider services;
-        //public IConfigurationRoot Configuration { get; }
-
-        //static void Main(string[] args)
-        //{
-        //    Console.WriteLine($"Booting up...\n___________\n{}");
-        //    => new Program().MainAsync().GetAwaiter().GetResult();
-        //}
-
-        //static void Main(string[] args) => new Sharpy().MainAsync().GetAwaiter().GetResult();
+        public static IConfigurationRoot Configuration;
+        public static bool DEV_MODE = true;
 
         static void Main(string[] args) => RunAsync(args).GetAwaiter().GetResult();
 
@@ -42,7 +36,7 @@ namespace Sharpy
             var builder = new ConfigurationBuilder()        // Create a new instance of the config builder
                 .SetBasePath(AppContext.BaseDirectory)      // Specify the default location for the config file
                 .AddJsonFile("config.json");        // Add this (json encoded) file to the configuration
-            //Configuration = builder.Build();                // Build the configuration
+            Configuration = builder.Build();                // Build the configuration
         }
 
         /// <summary>
@@ -59,9 +53,23 @@ namespace Sharpy
                 $"____________\n");
 
 
-            client = new DiscordSocketClient();
+            client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                LogLevel = LogSeverity.Info
+            });
+            client.Log += Log;
             commands = new CommandService();
-            services = new ServiceCollection().BuildServiceProvider();             // Create a new instance of a service collection
+
+            IServiceCollection serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            services = serviceCollection.BuildServiceProvider();
+
+            services.GetService<AudioService>().AudioPlaybackService = services.GetService<AudioPlaybackService>();
+
+
+
+            //services = new ServiceCollection().BuildServiceProvider();             // Create a new instance of a service collection
+
             await InstallCommands();
 
             await client.LoginAsync(TokenType.Bot, Configuration["tokens:discord"]);
@@ -96,14 +104,20 @@ namespace Sharpy
             await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
         }
 
+        private void ConfigureServices(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton(new YouTubeDownloadService());
+            serviceCollection.AddSingleton(new AudioPlaybackService());
+            serviceCollection.AddSingleton(new AudioService());
+        }
+
         public async Task HandleCommand(SocketMessage messageParam)
         {
             // Don't process the command if it was a System Message
             if (!(messageParam is SocketUserMessage message)) return;
             // Create a number to track where the prefix ends and the command begins
             int argPos = 0;
-            // Determine if the message is a command, based on if it starts with '!' or a mention prefix
-            if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
+            if (!(message.HasStringPrefix(Configuration["prefix"], ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) return;
             // Create a Command Context
             var context = new CommandContext(client, message);
             // Execute the command. (result does not indicate a return value, 
@@ -113,13 +127,39 @@ namespace Sharpy
                 await context.Channel.SendMessageAsync(result.ErrorReason);
         }
 
+        private Task Log(LogMessage message)
+        {
+            switch (message.Severity)
+            {
+                case LogSeverity.Critical:
+                case LogSeverity.Error:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case LogSeverity.Debug:
+                case LogSeverity.Verbose:
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    break;
+                case LogSeverity.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case LogSeverity.Info:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    break;
+                default:
+                    break;
+            }
+            Console.WriteLine($"[{message.Severity} {message.Source}][{DateTime.Now.ToString()}] : {message.Message}");
+            Console.ResetColor();
+            return Task.CompletedTask;
+        }
+
 
         public static bool TryGenerateConfiguration()
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, "config.json");
             if (File.Exists(filePath)) return false;
-
-            var json = JsonConvert.SerializeObject(new SharpyConfiguration(), Formatting.Indented);
+            object config = new SharpyConfiguration();
+            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(filePath, json);
             return true;
         }
@@ -130,7 +170,7 @@ namespace Sharpy
         public static string GetVersion()
         {
             string rev = "b";
-            if (Settings.Default.DEV_MODE)
+            if (DEV_MODE)
                 rev = "a";
             return $"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}{rev}";
         }
