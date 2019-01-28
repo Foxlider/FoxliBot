@@ -14,123 +14,114 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Sharpy.Services
 {
-    /**
-     * AudioService
-     * This handles the entire audio service functionality. 
-     * This service used to perform all the tasks required by the module, but most have been separated
-     * into helper functions.
-     * 
-     * AudioDownloader handles reading simple meta data from network links and local songs. If specified,
-     * it'll download network songs into a default folder.
-     * 
-     * AudioPlayer handles the local and network streams then passes it into FFmpeg to output to the voice channel.
-     * 
-     * Right now the playlist is maintained in the service, but may be abstracted or moved into another
-     * class in the future.
-     */
     //public class AudioService
     //{
+    //    //private BufferBlock<IPlayable> _songQueue;
+    //    public readonly ConcurrentDictionary<ulong, BufferBlock<IPlayable>> Queues = new ConcurrentDictionary<ulong, BufferBlock<IPlayable>>();
+    //    public readonly ConcurrentDictionary<ulong, IVoiceChannel> ConnectedChannels = new ConcurrentDictionary<ulong, IVoiceChannel>();
 
-    //    private readonly DiscordSocketClient _discord;
-    //    private readonly CommandService _commands;
-
-    //    public AudioService(DiscordSocketClient discord, CommandService commands)
-    //    {
-    //        _discord = discord;
-    //        _commands = commands;
+    //    public AudioService()
+    //    { //_songQueue = new BufferBlock<IPlayable>(); 
     //    }
 
-    //    //Looped Music Play
-    //    //public static async void MusicPlay()
-    //    //{
-    //    //    bool next = false;
+    //    public AudioPlaybackService AudioPlaybackService { get; set; }
 
-    //    //    while (true)
-    //    //    {
-    //    //        bool pause = false;
-    //    //        //Next song if current is over
-    //    //        if (!next)
-    //    //        {
-    //    //            pause = await _tcs.Task;
-    //    //            _tcs = new TaskCompletionSource<bool>();
-    //    //        }
-    //    //        else
-    //    //        {
-    //    //            next = false;
-    //    //        }
+    //    public IPlayable NowPlaying { get; private set; }
 
-    //    //        try
-    //    //        {
-    //    //            if (_queue.Count == 0)
-    //    //            {
-    //    //                await _client.SetGameAsync("Nothing :/");
-    //    //                Print("Playlist ended.", ConsoleColor.Magenta);
-    //    //            }
-    //    //            else
-    //    //            {
-    //    //                if (!pause)
-    //    //                {
-    //    //                    //Get Song
-    //    //                    var song = _queue.Peek();
-    //    //                    //Update "Playing .."
-    //    //                    await _client.SetGameAsync(song.Item2, song.Item1);
-    //    //                    Print($"Now playing: {song.Item2} ({song.Item3})", ConsoleColor.Magenta);
-    //    //                    await SendMessage($"Now playing: **{song.Item2}** ({song.Item3})");
+    //    public void SetVoiceChannel(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+    //    {
+    //        if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel voice))
+    //        {
+    //            ProcessQueue(voiceChannel, messageChannel);
+    //        }
+    //    }
 
-    //    //                    //Send audio (Long Async blocking, Read/Write stream)
-    //    //                    await SendAudio(song.Item1);
+    //    public async Task Quit(IGuild guild)
+    //    {
+    //        ConnectedChannels.TryGetValue(guild.Id, out IVoiceChannel voiceChannel);
+    //        await voiceChannel.DisconnectAsync();
+    //        ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
+    //    }
 
-    //    //                    try
-    //    //                    {
-    //    //                        File.Delete(song.Item1);
-    //    //                    }
-    //    //                    catch
-    //    //                    {
-    //    //                        // ignored
-    //    //                    }
-    //    //                    finally
-    //    //                    {
-    //    //                        //Finally remove song from playlist
-    //    //                        _queue.Dequeue();
-    //    //                    }
-    //    //                    next = true;
-    //    //                }
-    //    //            }
-    //    //        }
-    //    //        catch
-    //    //        {
-    //    //            //audio can't be played
-    //    //        }
-    //    //    }
-    //    //}
+    //    public void Next()
+    //    {
+    //        AudioPlaybackService.StopCurrentOperation();
+    //    }
+
+    //    public IList<IPlayable> Clear(IGuild guild)
+    //    {
+    //        try
+    //        {
+    //            Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> songQueue);
+    //            songQueue.TryReceiveAll(out var skippedSongs);
+    //            Log.Information($"Skipped {skippedSongs.Count} songs");
+    //            return skippedSongs;
+    //        }
+    //        catch
+    //        { return null; }
+    //    }
+
+    //    public void Queue(IGuild guild, IPlayable video)
+    //    {
+    //        Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> songQueue);
+    //        songQueue.Post(video);
+    //    }
+
+    //    public BufferBlock<IPlayable> SongList(IGuild guild)
+    //    {
+    //        Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> _songQueue);
+    //        return _songQueue;
+    //    }
+
+    //    private async void ProcessQueue(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+    //    {
+    //        IAudioClient audioClient = null;
+    //        Queues.TryGetValue(voiceChannel.Guild.Id, out BufferBlock<IPlayable> _songQueue);
+    //        while (await _songQueue.OutputAvailableAsync())
+    //        {
+    //            Log.Information("Waiting for songs");
+    //            NowPlaying = await _songQueue.ReceiveAsync();
+    //            try
+    //            {
+    //                Log.Information("Connecting to voice channel");
+    //                if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out voiceChannel))
+    //                {
+    //                    audioClient = await voiceChannel.ConnectAsync();
+    //                    if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, voiceChannel))
+    //                    { Log.Information("Connected!"); }
+    //                }
+    //                await messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
+    //                await AudioPlaybackService.SendAsync(audioClient, NowPlaying.Uri, NowPlaying.Speed);
+    //                NowPlaying.OnPostPlay();
+    //            }
+    //            catch (Exception e)
+    //            { Log.Information($"Error while playing song: {e}"); }
+    //        }
+    //        await voiceChannel.DisconnectAsync();
+    //        ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
+    //    }
     //}
+
 
     public class AudioService
     {
-        private IVoiceChannel _voiceChannel;
-        private IMessageChannel _messageChannel;
-        private BufferBlock<IPlayable> _songQueue;
-        private readonly ConcurrentDictionary<ulong, IAudioClient> ConnectedChannels = new ConcurrentDictionary<ulong, IAudioClient>();
+        //private BufferBlock<IPlayable> _songQueue;
+        public readonly ConcurrentDictionary<ulong, List<IPlayable>> Queues = new ConcurrentDictionary<ulong, List<IPlayable>>();
+        public readonly ConcurrentDictionary<ulong, IVoiceChannel> ConnectedChannels = new ConcurrentDictionary<ulong, IVoiceChannel>();
 
         public AudioService()
-        {
-            _songQueue = new BufferBlock<IPlayable>();
+        { //_songQueue = new BufferBlock<IPlayable>(); 
         }
 
         public AudioPlaybackService AudioPlaybackService { get; set; }
 
         public IPlayable NowPlaying { get; private set; }
 
-        public void SetVoiceChannel(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+        public async Task Quit(IGuild guild)
         {
-            this._voiceChannel = voiceChannel;
-            this._messageChannel = messageChannel;
-            ProcessQueue();
-        }
-
-        public void SetMessageChannel(IMessageChannel messageChannel)
-        {
-            this._messageChannel = messageChannel;
+            ConnectedChannels.TryGetValue(guild.Id, out IVoiceChannel voiceChannel);
+            await voiceChannel.DisconnectAsync();
+            ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
         }
 
         public void Next()
@@ -138,48 +129,68 @@ namespace Sharpy.Services
             AudioPlaybackService.StopCurrentOperation();
         }
 
-        public IList<IPlayable> Clear()
+        public IList<IPlayable> Clear(IGuild guild)
         {
-            _songQueue.TryReceiveAll(out var skippedSongs);
-
-            Console.WriteLine($"Skipped {skippedSongs.Count} songs");
-
-            return skippedSongs;
+            try
+            {
+                Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
+                Log.Information($"Skipped {songQueue.Count} songs");
+                songQueue.Clear();
+                return songQueue;
+            }
+            catch
+            { return null; }
         }
 
-        public void Queue(IPlayable video)
+        public void Queue(IGuild guild, IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
         {
-            _songQueue.Post(video);
+            Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
+            if (songQueue == null)
+                songQueue = new List<IPlayable>();
+            songQueue.Add(video);
+            //Queues.TryRemove(guild.Id, out var q);
+            Queues.AddOrUpdate(guild.Id, songQueue, (k, v) => v);
+            if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel voice))
+            {
+                ProcessQueue(voiceChannel, messageChannel);
+            }
         }
 
-        private async void ProcessQueue()
+        public List<IPlayable> SongList(IGuild guild)
         {
-            IAudioClient audioClient;
-            while (await _songQueue.OutputAvailableAsync())
+            Queues.TryGetValue(guild.Id, out List<IPlayable> _songQueue);
+            return _songQueue;
+        }
+
+        private async void ProcessQueue(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+        {
+            IAudioClient audioClient = null;
+            Queues.TryGetValue(voiceChannel.Guild.Id, out List<IPlayable> _songQueue);
+            while (_songQueue.Count > 0)
             {
                 Log.Information("Waiting for songs");
-                NowPlaying = await _songQueue.ReceiveAsync();
+                NowPlaying = _songQueue.FirstOrDefault();
                 try
                 {
-                    
                     Log.Information("Connecting to voice channel");
-                    if (!ConnectedChannels.TryGetValue(_voiceChannel.Guild.Id, out audioClient))
+                    if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel tempChannel))
                     {
-                        audioClient = await _voiceChannel.ConnectAsync();
-                        if (ConnectedChannels.TryAdd(_voiceChannel.Guild.Id, audioClient))
+                        audioClient = await voiceChannel.ConnectAsync();
+                        if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, voiceChannel))
                         { Log.Information("Connected!"); }
                     }
-                    await _messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
+                    await messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
                     await AudioPlaybackService.SendAsync(audioClient, NowPlaying.Uri, NowPlaying.Speed);
+                    var newQueue = _songQueue;
+                    newQueue.Remove(NowPlaying);
+                    Queues.TryUpdate(voiceChannel.Guild.Id, _songQueue, newQueue);
                     NowPlaying.OnPostPlay();
                 }
                 catch (Exception e)
-                {
-                    Log.Information($"Error while playing song: {e}");
-                }
+                { Log.Information($"Error while playing song: {e}"); }
             }
-            await _voiceChannel.DisconnectAsync();
-            ConnectedChannels.TryRemove(_voiceChannel.Guild.Id, out audioClient);
+            await voiceChannel.DisconnectAsync();
+            ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
         }
     }
 

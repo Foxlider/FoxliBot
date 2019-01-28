@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <StartupObject>Sharpy.Sharpy</StartupObject>
+    <StartupObject></StartupObject>
     <ApplicationIcon />
     <Win32Resource />
     <Version>0.2</Version>
@@ -11,10 +11,16 @@
     <Company>FoxliCorp</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyName>Sharpy</AssemblyName>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <FileVersion>0.3.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\alexis_lonchambon\Documents\Code\Sharpy\Sharpy\Sharpy.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

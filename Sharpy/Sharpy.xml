@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Sharpy</name>
+    </assembly>
+    <members>
+        <member name="M:Sharpy.Modules.Common.Say(System.String)">
+            <summary>
+            SAY - Echos a message
+            </summary>
+            <param name="echo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sharpy.Modules.Common.UserInfo(Discord.IUser)">
+            <summary>
+            USERINFO - Returns the information of a user
+            </summary>
+            <param name="user"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sharpy.Modules.Common.HelpAsync">
+            <summary>
+            HELP - Displays some help
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Sharpy.Modules.Common.HelpAsync(System.String)">
+            <summary>
+            HELP - Displays some help about a specific command
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Sharpy.Modules.Audio.Request(System.String)">
+            <summary>
+            Function Play
+            </summary>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Sharpy.Helpers.AudioPlayer">
+            AudioPlayer
+            Helper class to handle a single audio playback.
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.Download(System.String)">
+            <summary>
+            Download Song or Video
+            </summary>
+            <param name="url">The URL to the Song or Video</param>
+            <returns>The File Location to the downloaded Song or Video</returns>
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.DownloadPlaylist(System.String)">
+            <summary>
+            Download Playlist
+            </summary>
+            <param name="url">The URL to the Playlist</param>
+            <returns>The File Location to the downloaded Song</returns>
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.GetInfo(System.String)">
+            <summary>
+            Gets Title of Video or Song
+            </summary>
+            <param name="url">URL to Video or Song</param>
+            <returns>The Title of the Video or Song</returns>
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.GetInfoFromYouTube(System.String)">
+            <summary>
+            Get Video Title from YouTube URL
+            </summary>
+            <param name="url">URL to the YouTube Video</param>
+            <returns>The YouTube Video Title</returns>
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.DownloadFromYouTube(System.String)">
+            <summary>
+            Download the Video from YouTube url and extract it
+            </summary>
+            <param name="url">URL to the YouTube Video</param>
+            <returns>The File Path to the downloaded mp3</returns>
+        </member>
+        <member name="M:Sharpy.Helpers.DownloadHelper.DownloadPlaylistFromYouTube(System.String)">
+            <summary>
+            Download the whole Playlist from YouTube url and extract it
+            </summary>
+            <param name="url">URL to the YouTube Playlist</param>
+            <returns>The File Path to the downloaded mp3</returns>
+        </member>
+        <member name="T:Sharpy.Services.YouTube.DownloadedVideo">
+            <summary>
+            Represents a downloaded video.
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Title">
+            <summary>
+            Title of the video
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Duration">
+            <summary>
+            Duration of the video in seconds.
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Url">
+            <summary>
+            The URL used to access the video site (note: not the actual video itself).
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.DisplayID">
+            <summary>
+            Unique ID of the video, e.g. YouTube video ID.
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.FileName">
+            <summary>
+            Name of the file it got stored on.
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Requester">
+            <summary>
+            Person requesting the download
+            </summary>
+        </member>
+        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Speed">
+            <summary>
+            Speed modifier passed to ffmpeg (Frequency)
+            </summary>
+        </member>
+        <member name="M:Sharpy.Sharpy.RunAsync">
+            <summary>
+            Main Thread
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

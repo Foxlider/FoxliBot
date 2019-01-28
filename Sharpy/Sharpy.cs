@@ -19,7 +19,7 @@ namespace Sharpy
         public static DiscordSocketClient client;
         private IServiceProvider services;
         public static IConfigurationRoot Configuration;
-        public static bool DEV_MODE = true;
+        public static bool DEV_MODE = false;
 
         static void Main(string[] args) => RunAsync(args).GetAwaiter().GetResult();
 
@@ -87,7 +87,14 @@ namespace Sharpy
                         $"\tOwned by {guild.Owner.Nickname}#{guild.Owner.Discriminator}\n" +
                         $"\t{guild.MemberCount} members");
                 }
-                Console.WriteLine("\t\t_______________");
+                Console.WriteLine("\t_______________");
+                //ConsoleColor[] colors = (ConsoleColor[])ConsoleColor.GetValues(typeof(ConsoleColor));
+                //foreach (var color in colors)
+                //{
+                //    Console.ForegroundColor = color;
+                //    Console.WriteLine(" The foreground color is {0}.", color);
+                //}
+                Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} v{GetVersion()}";
                 SetDefaultStatus();
                 return Task.CompletedTask;
             };

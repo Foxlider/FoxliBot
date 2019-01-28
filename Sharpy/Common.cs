@@ -14,6 +14,7 @@ using System.Threading;
 using Sharpy.Services;
 using System.IO;
 using Sharpy.Services.YouTube;
+using System.Threading.Tasks.Dataflow;
 
 namespace Sharpy.Modules
 {
@@ -273,288 +274,26 @@ namespace Sharpy.Modules
     [Summary("Audio commands for Sharpy")]
     public class Audio : ModuleBase
     {
-        //private readonly CommandService _service;
-        //private readonly IConfigurationRoot _config;
-        //private readonly DiscordSocketClient _client;
-        //private IVoiceChannel _voiceChannel;
-        //private TaskCompletionSource<bool> _tcs;
-        //private CancellationTokenSource _disposeToken;
-        //private IAudioClient _audio;
-
-        ///// <summary>
-        ///// Tuple(FilePath, Video Name, Duration, Requested by)
-        ///// </summary>
-        //private Queue<Tuple<string, string, string, string>> _queue;
-
-        //private bool Pause
-        //{
-        //    get => _internalPause;
-        //    set
-        //    {
-        //        new Thread(() => _tcs.TrySetResult(value)).Start();
-        //        _internalPause = value;
-        //    }
-        //}
-        //private bool _internalPause;
-        //private bool Skip
-        //{
-        //    get
-        //    {
-        //        bool ret = _internalSkip;
-        //        _internalSkip = false;
-        //        return ret;
-        //    }
-        //    set => _internalSkip = value;
-        //}
-        //private bool _internalSkip;
-
-        //public bool IsDisposed;
-
-        //public Audio(CommandService service)
-        //{
-        //    _queue = new Queue<Tuple<string, string, string, string>>();
-        //    _client = Sharpy.client;
-        //    _service = service;
-        //    _config = Sharpy.Configuration;
-        //    _tcs = new TaskCompletionSource<bool>();
-        //    _disposeToken = new CancellationTokenSource();
-        //}
-
-        //[Command("add"), Summary("")]
-        //[Alias("a")]
-        //public async Task Add(string link)
-        //{
-        //    using (Context.Channel.EnterTypingState())
-        //    {
-
-        //        //Test for valid URL
-        //        bool result = Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult)
-        //                  && (uriResult.Scheme == "http" || uriResult.Scheme == "https");
-
-        //        //Answer
-        //        if (result)
-        //        {
-        //            try
-        //            {
-        //                Console.WriteLine("Downloading Video...", ConsoleColor.Magenta);
-
-        //                Tuple<string, string> info = await DownloadHelper.GetInfo(link);
-        //                //await ReplyAsync($"{Context.User.Mention} requested \"{info.Item1}\" ({info.Item2})! Downloading now...");
-
-        //                //Download
-        //                string file = await DownloadHelper.Download(link);
-        //                var vidInfo = new Tuple<string, string, string, string>(file, info.Item1, info.Item2, Context.User.ToString());
-
-        //                _queue.Enqueue(vidInfo);
-        //                Pause = false;
-        //                Console.WriteLine($"Song added to playlist! ({vidInfo.Item2} ({vidInfo.Item3}))!", ConsoleColor.Magenta);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Console.WriteLine($"Could not download Song! {ex.Message}", ConsoleColor.Red);
-        //                await ReplyAsync($"Sorry {Context.User.Mention}, unfortunately I can't play that Song!");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            await ReplyAsync($"Sorry {Context.User.Mention}, but that was not a valid URL!");
-        //        }
-        //    }
-        //}
-        //[Command("addplaylist"), Summary("")]
-        //[Alias("ap")]
-        //public async Task AddPlayList(string link)
-        //{
-        //    using (Context.Channel.EnterTypingState())
-        //    {
-
-        //        //Test for valid URL
-        //        bool result = Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult)
-        //                      && (uriResult.Scheme == "http" || uriResult.Scheme == "https");
-
-        //        //Answer
-        //        if (result)
-        //        {
-        //            try
-        //            {
-        //                Console.WriteLine("Downloading Playlist...", ConsoleColor.Magenta);
-
-        //                Tuple<string, string> info = await DownloadHelper.GetInfo(link);
-        //                await ReplyAsync($"{Context.User.Mention} requested Playlist \"{info.Item1}\" ({info.Item2})! Downloading now...");
-
-        //                //Download
-        //                string file = await DownloadHelper.DownloadPlaylist(link);
-        //                var vidInfo = new Tuple<string, string, string, string>(file, info.Item1, info.Item2, Context.User.ToString());
-
-        //                _queue.Enqueue(vidInfo);
-        //                Pause = false;
-        //                Console.WriteLine($"Playlist added to playlist! (\"{vidInfo.Item2}\" ({vidInfo.Item2}))!", ConsoleColor.Magenta);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Console.WriteLine($"Could not download Playlist! {ex.Message}", ConsoleColor.Red);
-        //                await ReplyAsync($"Sorry {Context.User.Mention}, unfortunately I can't play that Playlist!");
-        //            }
-        //        }
-        //        else
-        //        { await ReplyAsync($"Sorry {Context.User.Mention}, but that was not a valid URL!"); }
-        //    }
-        //}
-
-        //[Command("pause"), Summary("")]
-        //public async Task PauseCmd()
-        //{
-        //    Pause = true;
-        //    Console.WriteLine("Playback paused!", ConsoleColor.Magenta);
-        //    await ReplyAsync($"{Context.User.Mention} paused playback!");
-        //}
-
-        //[Command("resume"), Summary("")]
-        //public async Task ResumeCmd()
-        //{
-        //    Pause = false;
-        //    Console.WriteLine("Playback continued!", ConsoleColor.Magenta);
-        //    await ReplyAsync($"{Context.User.Mention} resumed playback!");
-        //}
-
-        //[Command("clear"), Summary("")]
-        //public async Task ClearCmd()
-        //{
-        //    Pause = true;
-        //    _queue.Clear();
-        //    Console.WriteLine("Playlist cleared!", ConsoleColor.Magenta);
-        //    await ReplyAsync($"{Context.User.Mention} cleared the Playlist!");
-        //}
-
-        //[Command("summon"), Summary("")]
-        //public async Task Summon()
-        //{
-        //    _audio?.Dispose();
-        //    _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
-        //    if (_voiceChannel == null)
-        //    {
-        //        Console.WriteLine("Error joining Voice Channel!", ConsoleColor.Red);
-        //        await ReplyAsync($"I can't connect to your Voice Channel.");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine($"Joined Voice Channel \"{_voiceChannel.Name}\"", ConsoleColor.Magenta);
-        //        _audio = await _voiceChannel.ConnectAsync();
-        //    }
-        //}
-
-        //[Command("skip"), Summary("")]
-        //public async Task SkipCmd()
-        //{
-        //    Console.WriteLine("Song Skipped!", ConsoleColor.Magenta);
-        //    await ReplyAsync($"{Context.User.Mention} skipped **{_queue.Peek().Item2}**!");
-        //    //Skip current Song
-        //    Skip = true;
-        //    Pause = false;
-        //}
-
-        //[Command("queue"), Summary("")]
-        //public async Task Queue()
-        //{
-        //    EmbedBuilder builder = new EmbedBuilder()
-        //    {
-        //        Author = new EmbedAuthorBuilder { Name = "Music Bot Song Queue" },
-        //        Footer = new EmbedFooterBuilder() { Text = "(I don't actually sing)" },
-        //        Color = Pause ? new Color(244, 67, 54) /*Red*/ : new Color(00, 99, 33) /*Green*/
-        //    };
-        //    //builder.ThumbnailUrl = "some cool url";
-        //    builder.Url = "http://github.com/Foxlider";
-
-        //    if (_queue.Count == 0)
-        //    { await ReplyAsync("Sorry, Song Queue is empty! Add some songs with the `!add [url]` command!"); }
-        //    else
-        //    {
-        //        foreach (Tuple<string, string, string, string> song in _queue)
-        //        { builder.AddField($"{song.Item2} ({song.Item3})", $"by {song.Item4}"); }
-        //        await ReplyAsync("", embed: builder.Build());
-        //    }
-        //}
-
-        //public async void MusicPlay()
-        //{
-        //    bool next = false;
-
-        //    while (true)
-        //    {
-        //        bool pause = false;
-        //        //Next song if current is over
-        //        if (!next)
-        //        {
-        //            pause = await _tcs.Task;
-        //            _tcs = new TaskCompletionSource<bool>();
-        //        }
-        //        else
-        //        {
-        //            next = false;
-        //        }
-
-        //        try
-        //        {
-        //            if (_queue.Count == 0)
-        //            {
-        //                await _client.SetGameAsync("Nothing :/");
-        //                Console.WriteLine("Playlist ended.", ConsoleColor.Magenta);
-        //            }
-        //            else
-        //            {
-        //                if (!pause)
-        //                {
-        //                    //Get Song
-        //                    var song = _queue.Peek();
-        //                    //Update "Playing .."
-        //                    await _client.SetGameAsync(song.Item2, song.Item1);
-        //                    Console.WriteLine($"Now playing: {song.Item2} ({song.Item3})", ConsoleColor.Magenta);
-        //                    await ReplyAsync($"Now playing: **{song.Item2}** ({song.Item3})");
-
-        //                    //Send audio (Long Async blocking, Read/Write stream)
-        //                    await AudioPlayer.SendAudio(song.Item1, _audio, _tcs, _disposeToken, Skip, Pause);
-
-        //                    try
-        //                    { File.Delete(song.Item1); }
-        //                    catch
-        //                    {
-        //                        // ignored
-        //                    }
-        //                    finally
-        //                    {
-        //                        //Finally remove song from playlist
-        //                        _queue.Dequeue();
-        //                    }
-        //                    next = true;
-        //                }
-        //            }
-        //        }
-        //        catch
-        //        {
-        //            //audio can't be played
-        //        }
-        //    }
-        //}
-
         public YouTubeDownloadService YoutubeDownloadService { get; set; }
 
         public AudioService SongService { get; set; }
 
-        [Alias("sq", "request", "play")]
-        [Command("songrequest", RunMode = RunMode.Async)]
+        /// <summary>
+        /// Function Play
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        [Alias("sq", "request", "songrequest")]
+        [Command("play", RunMode = RunMode.Async)]
         [Summary("Requests a song to be played")]
         public async Task Request([Remainder, Summary("URL of the video to play")] string url)
-        {
-            await Speedrun(url, 48);
-        }
+        { await Speedrun(url, 48); }
 
         [Alias("test")]
         [Command("soundtest", RunMode = RunMode.Async)]
         [Summary("Performs a sound test")]
         public async Task SoundTest()
-        {
-            await Request("https://www.youtube.com/watch?v=i1GOn7EIbLg");
-        }
+        { await Request("https://www.youtube.com/watch?v=i1GOn7EIbLg"); }
 
         [Command("speedrun", RunMode = RunMode.Async)]
         [Summary("Performs a sound test")]
@@ -582,7 +321,7 @@ namespace Sharpy.Modules
                 video.Requester = Context.User.Mention;
                 video.Speed = speedModifier;
 
-                await ReplyAsync($"{Context.User.Mention} queued **{video.Title}** | `{TimeSpan.FromSeconds(video.Duration)}` | {url}");
+                await ReplyAsync($"{Context.User.Mention} queued **{video.Title}** | `{TimeSpan.FromSeconds(video.Duration)}`");
                 var _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
                 if (_voiceChannel == null)
                 {
@@ -590,15 +329,10 @@ namespace Sharpy.Modules
                     await ReplyAsync($"I can't connect to your Voice Channel.");
                 }
                 else
-                {
-                    SongService.SetVoiceChannel(_voiceChannel, Context.Message.Channel);
-                    SongService.Queue(video);
-                }
+                { SongService.Queue(Context.Guild, video, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
-            {
-                Log.Information($"Error while processing song requet: {e}");
-            }
+            { Log.Information($"Error while processing song requet: {e}"); }
         }
 
         [Command("stream", RunMode = RunMode.Async)]
@@ -628,22 +362,36 @@ namespace Sharpy.Modules
 
                 Log.Information($"Attempting to stream {stream}");
 
-                await ReplyAsync($"{Context.User.Mention} queued **{stream.Title}** | `{stream.DurationString}` | {url}");
-
-                SongService.Queue(stream);
+                await ReplyAsync($"{Context.User.Mention} queued **{stream.Title}** | `{stream.DurationString}`");
+                var _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
+                if (_voiceChannel == null)
+                {
+                    Console.WriteLine("Error joining Voice Channel!", ConsoleColor.Red);
+                    await ReplyAsync($"I can't connect to your Voice Channel.");
+                }
+                else
+                { SongService.Queue(Context.Guild, stream, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
-            {
-                Log.Information($"Error while processing song requet: {e}");
-            }
+            { Log.Information($"Error while processing song requet: {e}"); }
         }
 
         [Command("clear")]
         [Summary("Clears all songs in queue")]
         public async Task ClearQueue()
         {
-            SongService.Clear();
+            SongService.Clear(Context.Guild);
             await ReplyAsync("Queue cleared");
+        }
+
+        [Command("stop")]
+        [Summary("Stops the playback and disconnect")]
+        public async Task Stop()
+        {
+            SongService.Clear(Context.Guild);
+            //ConcurrentDictionary<ulong, IAudioClient> channels = SongService.ConnectedChannels;
+            //channels.TryGetValue(Context.Guild)
+            await SongService.Quit(Context.Guild);
         }
 
         [Alias("next", "nextsong")]
@@ -655,19 +403,42 @@ namespace Sharpy.Modules
             await ReplyAsync("Skipped song");
         }
 
-        [Alias("np", "currentsong", "songname", "song")]
+
+        [Alias("songlist")]
+        [Command("queue")]
+        [Summary("Lists current songs")]
+        public async Task SongList()
+        {
+            List<IPlayable> songlist = SongService.SongList(Context.Guild);
+            if (songlist.Count == 0)
+            { await ReplyAsync($"{Context.User.Mention} current queue is empty"); }
+            else
+            {
+                string msg = "";
+                var nowPlaying = songlist.FirstOrDefault();
+                var qList = songlist;
+                qList.Remove(nowPlaying);
+                msg += $"** Now Playing : **\n  - *{nowPlaying.Title}* (`{nowPlaying.DurationString}`\n\n";
+                if (qList.Count > 0)
+                { msg += "** Songs in queue : **"; }
+                foreach (var song in qList)
+                { msg += $"\n  - *{song.Title}* (`{song.DurationString}`)"; }
+                await ReplyAsync(msg);
+            }
+        }
+
+
+        
         [Command("nowplaying")]
+        [Alias("np", "currentsong", "songname", "song")]
         [Summary("Prints current playing song")]
         public async Task NowPlaying()
         {
-            if (SongService.NowPlaying == null)
-            {
-                await ReplyAsync($"{Context.User.Mention} current queue is empty");
-            }
+            List<IPlayable> songlist = SongService.SongList(Context.Guild);
+            if (songlist.Count == 0)
+            { await ReplyAsync($"{Context.User.Mention} current queue is empty"); }
             else
-            {
-                await ReplyAsync($"{Context.User.Mention} now playing `{SongService.NowPlaying.Title}` requested by {SongService.NowPlaying.Requester}");
-            }
+            { await ReplyAsync($"{Context.User.Mention} now playing `{songlist.FirstOrDefault().Title}` requested by {songlist.FirstOrDefault().Requester}"); }
         }
     }
 

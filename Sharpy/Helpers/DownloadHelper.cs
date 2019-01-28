@@ -158,13 +158,13 @@ namespace Sharpy.Helpers
                 {
                     //Error downloading
                     tcs.SetResult(null);
-                    Console.WriteLine($"Could not download Song, youtube-dl responded with:\n\r{youtubedl.StandardOutput.ReadToEnd()}", ConsoleColor.Red);
+                    Log.Warning($"Could not download Song, youtube-dl responded with:\n\r{youtubedl.StandardOutput.ReadToEnd()}");
                 }
             }).Start();
 
             string result = await tcs.Task;
             if (result == null)
-                throw new Exception("youtube-dl.exe failed to download!");
+            { throw new Exception("youtube-dl.exe failed to download!"); }
 
             //Remove \n at end of Line
             result = result.Replace("\n", "").Replace(Environment.NewLine, "");
@@ -214,13 +214,13 @@ namespace Sharpy.Helpers
                 {
                     //Error downloading
                     tcs.SetResult(null);
-                    Console.WriteLine($"Could not download Song, youtube-dl responded with:\n\r{youtubedl.StandardOutput.ReadToEnd()}", ConsoleColor.Red);
+                    Log.Warning($"Could not download Song, youtube-dl responded with:\n\r{youtubedl.StandardOutput.ReadToEnd()}");
                 }
             }).Start();
 
             string result = await tcs.Task;
             if (result == null)
-                throw new Exception("youtube-dl.exe failed to download!");
+            { throw new Exception("youtube-dl.exe failed to download!"); }
 
             //Remove \n at end of Line
             result = result.Replace("\n", "").Replace(Environment.NewLine, "");

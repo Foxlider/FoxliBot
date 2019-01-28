@@ -47,7 +47,15 @@ namespace Sharpy
     {
         public static void Information(string message)
         {
-            Console.WriteLine(message, ConsoleColor.Blue);
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+        public static void Warning(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
      

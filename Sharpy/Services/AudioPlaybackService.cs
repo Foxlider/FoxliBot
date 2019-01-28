@@ -13,11 +13,11 @@ namespace Sharpy.Services
         {
             _currentProcess = CreateStream(path, speedModifier);
             var output = _currentProcess.StandardOutput.BaseStream;
-            var discord = client.CreatePCMStream(AudioApplication.Music, 96 * 1024);
+            var discord = client.CreatePCMStream(AudioApplication.Music, bitrate: 96000, bufferMillis: 2000);
             await output.CopyToAsync(discord);
             await discord.FlushAsync();
             _currentProcess.WaitForExit();
-            Console.WriteLine($"ffmpeg exited with code {_currentProcess.ExitCode}", ConsoleColor.Blue);
+            Log.Information($"ffmpeg exited with code {_currentProcess.ExitCode}");
         }
 
         public void StopCurrentOperation()
@@ -37,7 +37,7 @@ namespace Sharpy.Services
                 RedirectStandardOutput = true
             };
 
-            Console.WriteLine($"Starting ffmpeg with args {ffmpeg.Arguments}", ConsoleColor.Blue);
+            Log.Information($"Starting ffmpeg with args {ffmpeg.Arguments}");
             return Process.Start(ffmpeg);
         }
     }
