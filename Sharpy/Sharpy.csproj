@@ -11,8 +11,12 @@
     <Company>FoxliCorp</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyName>Sharpy</AssemblyName>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
-    <FileVersion>0.3.0.0</FileVersion>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <Description>Sharpy is the bot written in C# to replace the actual Foxlibot.py.</Description>
+    <Copyright>FoxliCorp</Copyright>
+    <PackageProjectUrl>https://github.com/Foxlider/FoxliBot/tree/Sharpy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Foxlider/FoxliBot/tree/Sharpy</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -38,7 +42,7 @@
 
   <ItemGroup>
     <None Update="ffmpeg.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="ffplay.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -53,7 +57,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="youtube-dl.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

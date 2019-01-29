@@ -1,27 +1,29 @@
 # FoxliBot
-New Discord bot made to replace DLBot
+Sharpy created to replace FoxliBot
+Written in C#
 
 # Installation : 
-  - Install discord.py 1.0 : `pip install -U git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]`
-  - You need to update pip with the required modules 
-  - Just get the token from Discord
-  - Put the token in a file called 'keyfile.key' in JSON ('key':'aRandomToken')
-  - Launch the BOT
-  - TADAAAAA !
+	- Clone Project
 
 But honestly, why would you run this bot if mine is already running ?
 
 # Use : 
 Click on the link below to make the bot join a server :
- https://discordapp.com/oauth2/authorize?&client_id=324471059816382464&scope=bot
+ https://discordapp.com/oauth2/authorize?&client_id=538306821333712916&scope=bot
 
 
 # Commands
-- connect       connects you to your voice channel
+- say			Says something
+- userinfo		Displays some informations about a user
+- help			Displays commands
+- test			Test the player's audio
+- stream		Plays a livestream
+- clear			Clear the current queue
+- stop			Stops the audio player
+- next			Skips the current song
+- queue			Displays the player queue
 - play          plays a youtube video (might work with some other audio sources too)
-- pause/resume  Actions on the audio player
-- skip/volume   Actions on the audio player
-- playing       Displays the current song
+- nowplaying    Displays the current song
 - version       Displays the version of the bot
 - choose        Choose between a list of words
 - roll          Classical dice rolling
@@ -31,26 +33,11 @@ THE END
 
 
 # Changelog
-I somehow skipped v3 that had a new framework based on the one did by Rapptz but it was very unstable
+No true release yet
 
-## [ Version 2.0 ]
-###   [ 2.0a ]
-- Main version
-###   [ 2.0b ]
-- Sound corrections 
-- StackOverflow correction
-
-## [ Version 4.1]
-###   [ 4.1a ]
-- New Framework. Rewrote it completely to work with discord.py v1.0
-- Reconnect when network errors
-- New functions
-- Removed the addaudio and playaudio functions for now
-- New Roll display to replace old DLBot
-- Removing messages to avoid spamming
-- Status system that will change uning the current song's title
-- New audio system independent from the server/guild
-- Performance improvements
+## [ Version 0.4 ]
+###   [ 0.4b ]
+ - Initial release
 
 
 ## TO DO

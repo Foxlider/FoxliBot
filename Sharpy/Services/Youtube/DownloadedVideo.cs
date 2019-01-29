@@ -44,8 +44,14 @@ namespace Sharpy.Services.YouTube
         /// </summary>
         public string Requester { get; set; }
 
+        /// <summary>
+        /// Duration of the IPlayable Item
+        /// </summary>
         public string DurationString => TimeSpan.FromSeconds(Duration).ToString();
 
+        /// <summary>
+        /// Returns the Filename of a file
+        /// </summary>
         public string Uri => FileName;
 
         /// <summary>
@@ -53,9 +59,12 @@ namespace Sharpy.Services.YouTube
         /// </summary>
         public int Speed { get; set; } = 48;
 
+        /// <summary>
+        /// After song Handler
+        /// </summary>
         public void OnPostPlay()
         {
-            File.Delete(FileName);
+            //File.Delete(Uri); //Comment this to ceep cached videos
         }
     }
 }

@@ -3,22 +3,22 @@ using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Sharpy.Services;
+using Sharpy.Services.YouTube;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Sharpy.Helpers;
-using System.Collections.Generic;
-using System.Threading;
-using Sharpy.Services;
-using System.IO;
-using Sharpy.Services.YouTube;
-using System.Threading.Tasks.Dataflow;
 
 namespace Sharpy.Modules
 {
     // Create a module with no prefix
+    /// <summary>
+    /// Common commands module
+    /// </summary>
     [Name("Common")]
     [Summary("Common commands for Sharpy")]
     public class Common : ModuleBase
@@ -26,6 +26,10 @@ namespace Sharpy.Modules
         private readonly CommandService _service;
         private readonly IConfigurationRoot _config;
         private readonly DiscordSocketClient _client;
+        /// <summary>
+        /// Common Commands module builder
+        /// </summary>
+        /// <param name="service"></param>
         public Common(CommandService service)
         {
             _client = Sharpy.client;
@@ -143,7 +147,10 @@ namespace Sharpy.Modules
         #endregion Help
 
         #region version
-
+        /// <summary>
+        /// Command Version
+        /// </summary>
+        /// <returns></returns>
         [Command("version"), Summary("Check the bot's version")]
         [Alias("v")]
         public async Task Version()
@@ -155,7 +162,11 @@ namespace Sharpy.Modules
         #endregion version
 
         #region choose
-
+        /// <summary>
+        /// Command choose
+        /// </summary>
+        /// <param name="cString">Multiple strings to choose from</param>
+        /// <returns></returns>
         [Command("choose"), Summary("If you want a robot to choose for you")]
         public async Task Choose([Remainder]string cString)
         {
@@ -186,7 +197,11 @@ namespace Sharpy.Modules
         #endregion choose
 
         #region roll
-
+        /// <summary>
+        /// Command roll
+        /// </summary>
+        /// <param name="dice">string of the dices (ex. 1d10)</param>
+        /// <returns></returns>
         [Command("roll"), Summary("Rolls a dice in NdN format")]
         [Alias("r")]
         public async Task Roll(string dice)
@@ -227,7 +242,11 @@ namespace Sharpy.Modules
         #endregion roll
 
         #region status
-
+        /// <summary>
+        /// COmmand status
+        /// </summary>
+        /// <param name="stat"></param>
+        /// <returns></returns>
         [Command("status")]
         public async Task Status(string stat = "")
         {
@@ -240,77 +259,54 @@ namespace Sharpy.Modules
         #endregion status
 
         #endregion COMMANDS
-
-
-        #region HELPERS
-
-        private Process CreateStream(string path)
-        {
-            var ffmpeg = new ProcessStartInfo
-            {
-                FileName = "ffmpeg",
-                Arguments = $"-i {path} -ac 2 -f s16le -ar 48000 pipe:1",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-            };
-            return Process.Start(ffmpeg);
-        }
-
-        private async Task SendAsync(IAudioClient client, string path)
-        {
-            // Create FFmpeg using the previous example
-            var ffmpeg = CreateStream(path);
-            var output = ffmpeg.StandardOutput.BaseStream;
-            var discord = client.CreatePCMStream(AudioApplication.Mixed);
-            await output.CopyToAsync(discord);
-            await discord.FlushAsync();
-        }
-        #endregion HELPERS
-
     }
 
-
+    /// <summary>
+    /// Audio commands module
+    /// </summary>
     [Name("Music")]
     [Summary("Audio commands for Sharpy")]
     public class Audio : ModuleBase
     {
+        /// <summary>
+        /// Downloader from YouTube
+        /// </summary>
         public YouTubeDownloadService YoutubeDownloadService { get; set; }
 
+        /// <summary>
+        /// Music handler
+        /// </summary>
         public AudioService SongService { get; set; }
 
+
+        #region AUDIO COMMANDS
+
+        #region play
         /// <summary>
         /// Function Play
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        [Alias("sq", "request", "songrequest")]
-        [Command("play", RunMode = RunMode.Async)]
+        [Alias("play", "request", "songrequest")]
+        [Command("sq", RunMode = RunMode.Async)]
         [Summary("Requests a song to be played")]
         public async Task Request([Remainder, Summary("URL of the video to play")] string url)
-        { await Speedrun(url, 48); }
-
-        [Alias("test")]
-        [Command("soundtest", RunMode = RunMode.Async)]
-        [Summary("Performs a sound test")]
-        public async Task SoundTest()
-        { await Request("https://www.youtube.com/watch?v=i1GOn7EIbLg"); }
-
-        [Command("speedrun", RunMode = RunMode.Async)]
-        [Summary("Performs a sound test")]
-        public async Task Speedrun(string url, int speedModifier)
         {
             try
             {
-                if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                //if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                //{
+                //    await ReplyAsync($"{Context.User.Mention} please provide a valid song URL");
+                //    return;
+                //}
+                DownloadedVideo video = await YoutubeDownloadService.GetVideoData(url);
+                if (!File.Exists(Path.Combine("Songs", $"{video.DisplayID}.mp3")))
                 {
-                    await ReplyAsync($"{Context.User.Mention} please provide a valid song URL");
-                    return;
+                    var downloadAnnouncement = await ReplyAsync($"{Context.User.Mention} attempting to download {url}");
+                    video = await YoutubeDownloadService.DownloadVideo(video);
+                    await downloadAnnouncement.DeleteAsync();
+                    await Context.Message.DeleteAsync();
                 }
-
-                var downloadAnnouncement = await ReplyAsync($"{Context.User.Mention} attempting to download {url}");
-                var video = await YoutubeDownloadService.DownloadVideo(url);
-                await downloadAnnouncement.DeleteAsync();
-                await Context.Message.DeleteAsync();
 
                 if (video == null)
                 {
@@ -319,7 +315,6 @@ namespace Sharpy.Modules
                 }
 
                 video.Requester = Context.User.Mention;
-                video.Speed = speedModifier;
 
                 await ReplyAsync($"{Context.User.Mention} queued **{video.Title}** | `{TimeSpan.FromSeconds(video.Duration)}`");
                 var _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
@@ -334,7 +329,27 @@ namespace Sharpy.Modules
             catch (Exception e)
             { Log.Information($"Error while processing song requet: {e}"); }
         }
+        #endregion
 
+
+        #region test
+        /// <summary>
+        /// Sound test (watch your ears)
+        /// </summary>
+        /// <returns></returns>
+        [Alias("test")]
+        [Command("soundtest", RunMode = RunMode.Async)]
+        [Summary("Performs a sound test")]
+        public async Task SoundTest()
+        { await Request("https://www.youtube.com/watch?v=i1GOn7EIbLg"); }
+        #endregion
+
+        #region stream
+        /// <summary>
+        /// Stream Player
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         [Command("stream", RunMode = RunMode.Async)]
         [Summary("Streams a livestream URL")]
         public async Task Stream(string url)
@@ -375,7 +390,13 @@ namespace Sharpy.Modules
             catch (Exception e)
             { Log.Information($"Error while processing song requet: {e}"); }
         }
+        #endregion
 
+        #region clear
+        /// <summary>
+        /// Command Clear
+        /// </summary>
+        /// <returns></returns>
         [Command("clear")]
         [Summary("Clears all songs in queue")]
         public async Task ClearQueue()
@@ -383,7 +404,13 @@ namespace Sharpy.Modules
             SongService.Clear(Context.Guild);
             await ReplyAsync("Queue cleared");
         }
+        #endregion
 
+        #region stop
+        /// <summary>
+        /// Command stop
+        /// </summary>
+        /// <returns></returns>
         [Command("stop")]
         [Summary("Stops the playback and disconnect")]
         public async Task Stop()
@@ -393,7 +420,13 @@ namespace Sharpy.Modules
             //channels.TryGetValue(Context.Guild)
             await SongService.Quit(Context.Guild);
         }
+        #endregion
 
+        #region skip
+        /// <summary>
+        /// Command Skip
+        /// </summary>
+        /// <returns></returns>
         [Alias("next", "nextsong")]
         [Command("skip")]
         [Summary("Skips current song")]
@@ -402,8 +435,13 @@ namespace Sharpy.Modules
             SongService.Next();
             await ReplyAsync("Skipped song");
         }
+        #endregion
 
-
+        #region queue
+        /// <summary>
+        /// Command queue
+        /// </summary>
+        /// <returns></returns>
         [Alias("songlist")]
         [Command("queue")]
         [Summary("Lists current songs")]
@@ -418,7 +456,7 @@ namespace Sharpy.Modules
                 var nowPlaying = songlist.FirstOrDefault();
                 var qList = songlist;
                 qList.Remove(nowPlaying);
-                msg += $"** Now Playing : **\n  - *{nowPlaying.Title}* (`{nowPlaying.DurationString}`\n\n";
+                msg += $"** Now Playing : **\n  - *{nowPlaying.Title}* (`{nowPlaying.DurationString}`)\n\n";
                 if (qList.Count > 0)
                 { msg += "** Songs in queue : **"; }
                 foreach (var song in qList)
@@ -426,9 +464,13 @@ namespace Sharpy.Modules
                 await ReplyAsync(msg);
             }
         }
+        #endregion
 
-
-        
+        #region nowplaying
+        /// <summary>
+        /// Command nowPlaying
+        /// </summary>
+        /// <returns></returns>
         [Command("nowplaying")]
         [Alias("np", "currentsong", "songname", "song")]
         [Summary("Prints current playing song")]
@@ -440,6 +482,10 @@ namespace Sharpy.Modules
             else
             { await ReplyAsync($"{Context.User.Mention} now playing `{songlist.FirstOrDefault().Title}` requested by {songlist.FirstOrDefault().Requester}"); }
         }
+        #endregion
+
+
+        #endregion
     }
 
 }

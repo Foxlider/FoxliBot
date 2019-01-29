@@ -1,41 +1,50 @@
 ﻿using Discord;
 using Discord.Audio;
-using Discord.Commands;
-using Discord.WebSocket;
-using Sharpy.Helpers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 namespace Sharpy.Services
 {
+    ///// <summary>
+    ///// Audio service
+    ///// </summary>
     //public class AudioService
     //{
     //    //private BufferBlock<IPlayable> _songQueue;
-    //    public readonly ConcurrentDictionary<ulong, BufferBlock<IPlayable>> Queues = new ConcurrentDictionary<ulong, BufferBlock<IPlayable>>();
+    //    /// <summary>
+    //    /// List of Queues by server
+    //    /// </summary>
+    //    public readonly ConcurrentDictionary<ulong, List<IPlayable>> Queues = new ConcurrentDictionary<ulong, List<IPlayable>>();
+    //    /// <summary>
+    //    /// List of VoiceChannels by server
+    //    /// </summary>
     //    public readonly ConcurrentDictionary<ulong, IVoiceChannel> ConnectedChannels = new ConcurrentDictionary<ulong, IVoiceChannel>();
 
+    //    /// <summary>
+    //    /// Service CTOR
+    //    /// </summary>
     //    public AudioService()
     //    { //_songQueue = new BufferBlock<IPlayable>(); 
     //    }
 
+    //    /// <summary>
+    //    /// Playback service
+    //    /// </summary>
     //    public AudioPlaybackService AudioPlaybackService { get; set; }
 
+    //    /// <summary>
+    //    /// NowPlaying var
+    //    /// </summary>
     //    public IPlayable NowPlaying { get; private set; }
 
-    //    public void SetVoiceChannel(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
-    //    {
-    //        if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel voice))
-    //        {
-    //            ProcessQueue(voiceChannel, messageChannel);
-    //        }
-    //    }
-
+    //    /// <summary>
+    //    /// Quit the voice channel
+    //    /// </summary>
+    //    /// <param name="guild"></param>
+    //    /// <returns></returns>
     //    public async Task Quit(IGuild guild)
     //    {
     //        ConnectedChannels.TryGetValue(guild.Id, out IVoiceChannel voiceChannel);
@@ -43,48 +52,76 @@ namespace Sharpy.Services
     //        ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
     //    }
 
+    //    /// <summary>
+    //    /// Skips current song
+    //    /// </summary>
     //    public void Next()
     //    {
     //        AudioPlaybackService.StopCurrentOperation();
     //    }
 
+    //    /// <summary>
+    //    /// Clear queue
+    //    /// </summary>
+    //    /// <param name="guild"></param>
+    //    /// <returns></returns>
     //    public IList<IPlayable> Clear(IGuild guild)
     //    {
     //        try
     //        {
-    //            Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> songQueue);
-    //            songQueue.TryReceiveAll(out var skippedSongs);
-    //            Log.Information($"Skipped {skippedSongs.Count} songs");
-    //            return skippedSongs;
+    //            Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
+    //            Log.Information($"Skipped {songQueue.Count} songs");
+    //            songQueue.Clear();
+    //            return songQueue;
     //        }
     //        catch
     //        { return null; }
     //    }
 
-    //    public void Queue(IGuild guild, IPlayable video)
+    //    /// <summary>
+    //    /// Add a song to the queue
+    //    /// </summary>
+    //    /// <param name="guild"></param>
+    //    /// <param name="video"></param>
+    //    /// <param name="voiceChannel"></param>
+    //    /// <param name="messageChannel"></param>
+    //    public void Queue(IGuild guild, IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
     //    {
-    //        Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> songQueue);
-    //        songQueue.Post(video);
+    //        Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
+    //        if (songQueue == null)
+    //            songQueue = new List<IPlayable>();
+    //        songQueue.Add(video);
+    //        //Queues.TryRemove(guild.Id, out var q);
+    //        Queues.AddOrUpdate(guild.Id, songQueue, (k, v) => v);
+    //        if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel voice))
+    //        {
+    //            ProcessQueue(voiceChannel, messageChannel);
+    //        }
     //    }
 
-    //    public BufferBlock<IPlayable> SongList(IGuild guild)
+    //    /// <summary>
+    //    /// Lists current songs
+    //    /// </summary>
+    //    /// <param name="guild"></param>
+    //    /// <returns></returns>
+    //    public List<IPlayable> SongList(IGuild guild)
     //    {
-    //        Queues.TryGetValue(guild.Id, out BufferBlock<IPlayable> _songQueue);
+    //        Queues.TryGetValue(guild.Id, out List<IPlayable> _songQueue);
     //        return _songQueue;
     //    }
 
     //    private async void ProcessQueue(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
     //    {
     //        IAudioClient audioClient = null;
-    //        Queues.TryGetValue(voiceChannel.Guild.Id, out BufferBlock<IPlayable> _songQueue);
-    //        while (await _songQueue.OutputAvailableAsync())
+    //        Queues.TryGetValue(voiceChannel.Guild.Id, out List<IPlayable> _songQueue);
+    //        while (_songQueue.Count > 0)
     //        {
     //            Log.Information("Waiting for songs");
-    //            NowPlaying = await _songQueue.ReceiveAsync();
+    //            NowPlaying = _songQueue.FirstOrDefault();
     //            try
     //            {
     //                Log.Information("Connecting to voice channel");
-    //                if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out voiceChannel))
+    //                if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel tempChannel))
     //                {
     //                    audioClient = await voiceChannel.ConnectAsync();
     //                    if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, voiceChannel))
@@ -92,6 +129,9 @@ namespace Sharpy.Services
     //                }
     //                await messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
     //                await AudioPlaybackService.SendAsync(audioClient, NowPlaying.Uri, NowPlaying.Speed);
+    //                var newQueue = _songQueue;
+    //                newQueue.Remove(NowPlaying);
+    //                Queues.TryUpdate(voiceChannel.Guild.Id, _songQueue, newQueue);
     //                NowPlaying.OnPostPlay();
     //            }
     //            catch (Exception e)
@@ -102,38 +142,63 @@ namespace Sharpy.Services
     //    }
     //}
 
-
+    /// <summary>
+    /// Audio service
+    /// </summary>
     public class AudioService
     {
-        //private BufferBlock<IPlayable> _songQueue;
-        public readonly ConcurrentDictionary<ulong, List<IPlayable>> Queues = new ConcurrentDictionary<ulong, List<IPlayable>>();
-        public readonly ConcurrentDictionary<ulong, IVoiceChannel> ConnectedChannels = new ConcurrentDictionary<ulong, IVoiceChannel>();
 
+        /// <summary>
+        /// List of VoiceChannels by server
+        /// </summary>
+        public readonly ConcurrentDictionary<ulong, VoiceConnexion> ConnectedChannels = new ConcurrentDictionary<ulong, VoiceConnexion>();
+
+        /// <summary>
+        /// Service CTOR
+        /// </summary>
         public AudioService()
         { //_songQueue = new BufferBlock<IPlayable>(); 
         }
 
+        /// <summary>
+        /// Playback service
+        /// </summary>
         public AudioPlaybackService AudioPlaybackService { get; set; }
 
+        /// <summary>
+        /// NowPlaying var
+        /// </summary>
         public IPlayable NowPlaying { get; private set; }
 
+        /// <summary>
+        /// Quit the voice channel
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <returns></returns>
         public async Task Quit(IGuild guild)
         {
-            ConnectedChannels.TryGetValue(guild.Id, out IVoiceChannel voiceChannel);
-            await voiceChannel.DisconnectAsync();
-            ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
+            ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
+            await voice.Channel.DisconnectAsync();
+            ConnectedChannels.TryRemove(voice.Channel.Guild.Id, out VoiceConnexion tempVoice);
         }
 
+        /// <summary>
+        /// Skips current song
+        /// </summary>
         public void Next()
-        {
-            AudioPlaybackService.StopCurrentOperation();
-        }
+        { AudioPlaybackService.StopCurrentOperation(); }
 
+        /// <summary>
+        /// Clear queue
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <returns></returns>
         public IList<IPlayable> Clear(IGuild guild)
         {
             try
             {
-                Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
+                ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
+                var songQueue = voice.Queue;
                 Log.Information($"Skipped {songQueue.Count} songs");
                 songQueue.Clear();
                 return songQueue;
@@ -142,55 +207,73 @@ namespace Sharpy.Services
             { return null; }
         }
 
-        public void Queue(IGuild guild, IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+        /// <summary>
+        /// Add a song to the queue
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <param name="video"></param>
+        /// <param name="voiceChannel"></param>
+        /// <param name="messageChannel"></param>
+        public async void Queue(IGuild guild, IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
         {
-            Queues.TryGetValue(guild.Id, out List<IPlayable> songQueue);
-            if (songQueue == null)
-                songQueue = new List<IPlayable>();
-            songQueue.Add(video);
-            //Queues.TryRemove(guild.Id, out var q);
-            Queues.AddOrUpdate(guild.Id, songQueue, (k, v) => v);
-            if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel voice))
+            bool firstConnexion = false;
+            if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion tempsVoice))
             {
-                ProcessQueue(voiceChannel, messageChannel);
+                Log.Information("Connecting to voice channel");
+                VoiceConnexion connexion = new VoiceConnexion
+                {
+                    Channel = voiceChannel,
+                    Queue = new List<IPlayable>(),
+                    Client = await voiceChannel.ConnectAsync()
+                };
+                if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, connexion))
+                { Log.Information("Connected!"); }
+                firstConnexion = true;
+                
             }
+            ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
+
+            voice.Queue.Add(video);
+
+            if (firstConnexion)
+            { ProcessQueue(voiceChannel, messageChannel); }
         }
 
+        /// <summary>
+        /// Lists current songs
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <returns></returns>
         public List<IPlayable> SongList(IGuild guild)
         {
-            Queues.TryGetValue(guild.Id, out List<IPlayable> _songQueue);
-            return _songQueue;
+            ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
+            return voice.Queue;
         }
 
+        /// <summary>
+        /// Handled the Queue of a Voice Client
+        /// </summary>
+        /// <param name="voiceChannel"></param>
+        /// <param name="messageChannel"></param>
         private async void ProcessQueue(IVoiceChannel voiceChannel, IMessageChannel messageChannel)
         {
-            IAudioClient audioClient = null;
-            Queues.TryGetValue(voiceChannel.Guild.Id, out List<IPlayable> _songQueue);
-            while (_songQueue.Count > 0)
+            ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion voice);
+            while (voice.Queue.Count > 0)
             {
                 Log.Information("Waiting for songs");
-                NowPlaying = _songQueue.FirstOrDefault();
+                NowPlaying = voice.Queue.FirstOrDefault();
                 try
                 {
-                    Log.Information("Connecting to voice channel");
-                    if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out IVoiceChannel tempChannel))
-                    {
-                        audioClient = await voiceChannel.ConnectAsync();
-                        if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, voiceChannel))
-                        { Log.Information("Connected!"); }
-                    }
                     await messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
-                    await AudioPlaybackService.SendAsync(audioClient, NowPlaying.Uri, NowPlaying.Speed);
-                    var newQueue = _songQueue;
-                    newQueue.Remove(NowPlaying);
-                    Queues.TryUpdate(voiceChannel.Guild.Id, _songQueue, newQueue);
+                    await AudioPlaybackService.SendAsync(voice.Client, NowPlaying.Uri, NowPlaying.Speed);
+                    voice.Queue.Remove(NowPlaying);
                     NowPlaying.OnPostPlay();
                 }
                 catch (Exception e)
                 { Log.Information($"Error while playing song: {e}"); }
             }
-            await voiceChannel.DisconnectAsync();
-            ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out IVoiceChannel voice);
+            await voice.Channel.DisconnectAsync();
+            ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out VoiceConnexion tempVoice);
         }
     }
 

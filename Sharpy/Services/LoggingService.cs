@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Sharpy
 {
+    /// <summary>
+    /// Log service to handle Discord-side logs
+    /// </summary>
     public class LoggingService
     {
         private readonly DiscordSocketClient _discord;
@@ -16,6 +19,11 @@ namespace Sharpy
         private string _logFile => Path.Combine(_logDirectory, $"{DateTime.UtcNow.ToString("yyyy-MM-dd")}.txt");
 
         // DiscordSocketClient and CommandService are injected automatically from the IServiceProvider
+        /// <summary>
+        /// Logging service
+        /// </summary>
+        /// <param name="discord"></param>
+        /// <param name="commands"></param>
         public LoggingService(DiscordSocketClient discord, CommandService commands)
         {
             _logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
@@ -43,17 +51,39 @@ namespace Sharpy
         
     }
 
+    /// <summary>
+    /// Logging service to handle Application-side logs
+    /// </summary>
     public class Log
     {
+        /// <summary>
+        /// Prints Informations in Blue
+        /// </summary>
+        /// <param name="message"></param>
         public static void Information(string message)
         {
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine(message);
             Console.ResetColor();
         }
+
+        /// <summary>
+        /// Prints Warnings in Red
+        /// </summary>
+        /// <param name="message"></param>
         public static void Warning(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
+        /// <summary>
+        /// Prints Neutral messages in White
+        /// </summary>
+        /// <param name="message"></param>
+        public static void Neutral(string message)
+        {
             Console.WriteLine(message);
             Console.ResetColor();
         }

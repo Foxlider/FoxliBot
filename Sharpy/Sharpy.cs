@@ -1,15 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Reflection;
-using Discord;
-using Discord.WebSocket;
+﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using Newtonsoft.Json;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
-using Sharpy.Services.YouTube;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Sharpy.Services;
+using Sharpy.Services.YouTube;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Sharpy
 {
@@ -25,6 +27,7 @@ namespace Sharpy
 
         public static async Task RunAsync(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
             var sharpy = new Sharpy(args);
             await sharpy.RunAsync();
         }
@@ -52,12 +55,21 @@ namespace Sharpy
                 $"v{GetVersion()}\n" +
                 $"____________\n");
 
-
+            //Clearing Song folder
+            try
+            {
+                DirectoryInfo d = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "Songs"));
+                foreach (FileInfo file in d.GetFiles())
+                { file.Delete(); }
+            }
+            catch
+            { }
+            //Creating Websocket
             client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Info
             });
-            client.Log += Log;
+            client.Log += LogMessage;
             commands = new CommandService();
 
             IServiceCollection serviceCollection = new ServiceCollection();
@@ -71,7 +83,21 @@ namespace Sharpy
             //services = new ServiceCollection().BuildServiceProvider();             // Create a new instance of a service collection
 
             await InstallCommands();
-
+            if (Configuration["tokens:discord"] == null || Configuration["tokens:discord"] == "")
+            {
+                Log.Warning("Impossible to read Configuration.");
+                Log.Neutral("Do you want to edit the Discord Token ? (Y/n)");
+                var answer = Console.ReadKey();
+                Log.Neutral("");
+                if (answer.Key == ConsoleKey.Enter || answer.Key == ConsoleKey.Y)
+                { EditToken(); }
+                else
+                {
+                    Log.Warning("Shutting Down...\nPress Enter to continue.");
+                    Console.ReadKey();
+                    Environment.Exit(-1);
+                }
+            }
             await client.LoginAsync(TokenType.Bot, Configuration["tokens:discord"]);
             await client.StartAsync();
 
@@ -102,6 +128,7 @@ namespace Sharpy
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
+        
 
         public async Task InstallCommands()
         {
@@ -134,7 +161,18 @@ namespace Sharpy
                 await context.Channel.SendMessageAsync(result.ErrorReason);
         }
 
-        private Task Log(LogMessage message)
+        static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            try
+            { client.LogoutAsync(); }
+            catch { }
+            finally
+            { client.Dispose(); }
+            Log.Warning("Shutting Down...");
+            Environment.Exit(0);
+        }
+
+        private Task LogMessage(LogMessage message)
         {
             switch (message.Severity)
             {
@@ -170,6 +208,45 @@ namespace Sharpy
             File.WriteAllText(filePath, json);
             return true;
         }
+
+        private void EditToken()
+        {
+            string url = "https://discordapp.com/developers/applications/538306821333712916/bots";
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            Log.Neutral("Please enter the bot's token below.");
+            string answer = Console.ReadLine();
+            Configuration["tokens:discord"] = answer;
+            var filePath = Path.Combine(AppContext.BaseDirectory, "config.json");
+            object config = new SharpyConfiguration(Configuration["prefix"], new Tokens(Configuration["tokens:discord"]));
+            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
+            File.Delete(filePath);
+            File.WriteAllText(filePath, json);
+        }
+
 
         public void SetDefaultStatus()
         { client.SetGameAsync($"Ready to meet {Assembly.GetExecutingAssembly().GetName().Name} v{GetVersion()} ?"); }

@@ -1,19 +1,31 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Sharpy.Services.YouTube
 {
+    /// <summary>
+    /// Youtube Downloader
+    /// </summary>
     public class YouTubeDownloadService
     {
-        public async Task<DownloadedVideo> DownloadVideo(string url)
+        /// <summary>
+        /// Donwload a video
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public async Task<DownloadedVideo> DownloadVideo(DownloadedVideo video)
         {
-            var filename = Guid.NewGuid();
-
+            //var filename = Guid.NewGuid();
+            //DownloadedVideo file = await GetVideoData(search);
+            //if (File.Exists(Path.Combine("Songs", $"{file.DisplayID}.mp3")))
+            //{
+            //    return file;
+            //}
             var youtubeDl = StartYoutubeDl(
-                $"-o Songs/{filename}.mp3 --restrict-filenames --extract-audio --no-overwrites --print-json --audio-format mp3 " +
-                url);
+                $"-o Songs/{video.DisplayID}.mp3 --restrict-filenames --extract-audio --no-overwrites --print-json --audio-format mp3 {video.Url}");
 
             if (youtubeDl == null)
             {
@@ -28,6 +40,11 @@ namespace Sharpy.Services.YouTube
             return JsonConvert.DeserializeObject<DownloadedVideo>(jsonOutput);
         }
 
+        /// <summary>
+        /// Download a Livestream
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public async Task<StreamMetadata> GetLivestreamData(string url)
         {
             var youtubeDl = StartYoutubeDl("--print-json --skip-download " + url);
@@ -36,6 +53,21 @@ namespace Sharpy.Services.YouTube
             Log.Information($"Download completed with exit code {youtubeDl.ExitCode}");
 
             return JsonConvert.DeserializeObject<StreamMetadata>(jsonOutput);
+        }
+        
+        /// <summary>
+        /// Download a Livestream
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public async Task<DownloadedVideo> GetVideoData(string search)
+        {
+            var youtubeDl = StartYoutubeDl($"--print-json --skip-download ytsearch:\"{search}\"");
+            var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
+            youtubeDl.WaitForExit();
+            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}");
+
+            return JsonConvert.DeserializeObject<DownloadedVideo>(jsonOutput);
         }
 
         private static Process StartYoutubeDl(string arguments)
@@ -52,5 +84,7 @@ namespace Sharpy.Services.YouTube
             Log.Information($"Starting youtube-dl with arguments: {youtubeDlStartupInfo.Arguments}");
             return Process.Start(youtubeDlStartupInfo);
         }
+
+
     }
 }
