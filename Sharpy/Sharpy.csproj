@@ -6,17 +6,18 @@
     <StartupObject></StartupObject>
     <ApplicationIcon />
     <Win32Resource />
-    <Version>0.2</Version>
+    <Version>0.5</Version>
     <Authors>Foxlider</Authors>
     <Company>FoxliCorp</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyName>Sharpy</AssemblyName>
-    <AssemblyVersion>0.4.0.0</AssemblyVersion>
-    <FileVersion>0.4.0.0</FileVersion>
+    <AssemblyVersion>0.5.0.0</AssemblyVersion>
+    <FileVersion>0.5.0.0</FileVersion>
     <Description>Sharpy is the bot written in C# to replace the actual Foxlibot.py.</Description>
     <Copyright>FoxliCorp</Copyright>
     <PackageProjectUrl>https://github.com/Foxlider/FoxliBot/tree/Sharpy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Foxlider/FoxliBot/tree/Sharpy</RepositoryUrl>
+    <PackageReleaseNotes>Changed Text parsing in commands</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

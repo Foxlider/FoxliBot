@@ -3,11 +3,13 @@ using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Sharpy.Services;
 using Sharpy.Services.YouTube;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -62,12 +64,84 @@ namespace Sharpy.Modules
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [Command("userinfo"), Summary("Returns info about the current user, or the user parameter, if one passed.")]
+        [Command("userinfo"), Summary("Displays information about a user")]
         [Alias("user", "whois")]
         public async Task UserInfo([Summary("The (optional) user to get info for")] IUser user = null)
         {
+            await Context.Message.DeleteAsync();
             var userInfo = user ?? Context.Client.CurrentUser;
-            await ReplyAsync($"{userInfo.Username}#{userInfo.Discriminator}");
+            var builder = new EmbedBuilder();
+            EmbedFieldBuilder field = new EmbedFieldBuilder
+            {
+                IsInline = false
+            };
+
+            builder.WithTitle($"User Informations");
+            builder.WithDescription($"Informations of {userInfo.Mention} - {userInfo.Username}#{userInfo.Discriminator}");
+
+            if (userInfo.IsBot)
+            {
+                field = new EmbedFieldBuilder
+                {
+                    IsInline = false,
+                    Name = "BOT : ",
+                    Value = "User is a Bot"
+                };
+                builder.AddField(field);
+            }
+
+            field = new EmbedFieldBuilder
+            {
+                IsInline = true,
+                Name = "User created at ",
+                Value = userInfo.CreatedAt.DateTime.ToString("g", CultureInfo.CreateSpecificCulture("fr-FR"))
+            };
+            builder.AddField(field);
+
+
+            var guildUser = (userInfo as IGuildUser);
+            if (guildUser != null)
+            {
+                field = new EmbedFieldBuilder
+                {
+                    IsInline = true,
+                    Name = "User joined at ",
+                    Value = guildUser.JoinedAt.Value.DateTime.ToString("g", CultureInfo.CreateSpecificCulture("fr-FR"))
+                };
+                builder.AddField(field);
+
+                var userPerms = guildUser.RoleIds;
+                foreach (var role in userPerms)
+                {
+                    if (Context.Guild.GetRole(role).Name != "@everyone") //You don't want to mention the world
+                    {
+                        field = new EmbedFieldBuilder
+                        {
+                            IsInline = true,
+                            Name = "Role :",
+                            Value = Context.Guild.GetRole(role).Name
+                        };
+                        builder.AddField(field);
+                    }
+                }
+
+                if (guildUser.VoiceChannel != null)
+                {
+                    field = new EmbedFieldBuilder
+                    {
+                        IsInline = false,
+                        Name = "Connected to : ",
+                        Value = guildUser.VoiceChannel.ToString()
+                    };
+                    builder.AddField(field);
+                }
+            }
+
+            builder.WithThumbnailUrl(userInfo.GetAvatarUrl());
+            builder.WithColor(Color.Blue);
+
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync("", false, embed);
         }
 
         #endregion userinfo
@@ -76,72 +150,79 @@ namespace Sharpy.Modules
         /// <summary>
         /// HELP - Displays some help
         /// </summary>
+        /// <param name="command"></param>
         /// <returns></returns>
         [Command("help")]
-        public async Task HelpAsync()
+        [Alias("h")]
+        [Summary("Prints the help of available commands")]
+        public async Task HelpAsync(string command = null)
         {
-            string prefix = _config["prefix"];
-            var builder = new EmbedBuilder()
+            if (command == null)    //______________________________________________        HELP WITH NO COMMAND PROVIDED
             {
-                Color = new Color(114, 137, 218),
-                Description = "These are the commands you can use"
-            };
-            
-            foreach (var module in _service.Modules)
-            {
-                string description = null;
-                foreach (var cmd in module.Commands)
+                await Context.Message.DeleteAsync();
+                string prefix = _config["prefix"];
+                var builder = new EmbedBuilder()
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
-                    if (result.IsSuccess)
-                        description += $"{prefix}{cmd.Aliases.First()}\n";
+                    Color = new Color(114, 137, 218),
+                    Title = "Help",
+                    Description = "These are the commands you can use"
+                };
+
+                foreach (var module in _service.Modules)
+                {
+                    string description = "```";
+                    foreach (var cmd in module.Commands)
+                    {
+                        var result = await cmd.CheckPreconditionsAsync(Context);
+                        if (result.IsSuccess)
+                        {
+                            string alias = cmd.Aliases.First();
+                            description += $"{prefix}{alias.PadRight(10)}\t{cmd.Summary}\n";
+                        }
+                    }
+                    description += "```";
+
+
+                    if (!string.IsNullOrWhiteSpace(description))
+                    {
+                        builder.AddField(x =>
+                        {
+                            x.Name = module.Name;
+                            x.Value = description;
+                            x.IsInline = false;
+                        });
+                    }
                 }
-                
-                if (!string.IsNullOrWhiteSpace(description))
+                await ReplyAsync("", false, builder.Build());
+            }
+            else //_________________________________________________________________       HELP WITH COMMAND PROVIDED
+            {
+                var result = _service.Search(Context, command);
+                if (!result.IsSuccess)
                 {
+                    await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                    return;
+                }
+                string prefix = _config["prefix"];
+                var builder = new EmbedBuilder()
+                {
+                    Color = new Color(114, 137, 218),
+                    Description = $"Here are some commands like **{command}**"
+                };
+
+                foreach (var match in result.Commands)
+                {
+                    var cmd = match.Command;
                     builder.AddField(x =>
                     {
-                        x.Name = module.Name;
-                        x.Value = description;
+                        x.Name = $"({string.Join("|", cmd.Aliases)})";
+                        x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
+                                  $"Summary: {cmd.Summary}";
                         x.IsInline = false;
                     });
                 }
+                await ReplyAsync("", false, builder.Build());
             }
-            await ReplyAsync("", false, builder.Build());
-        }
-
-        /// <summary>
-        /// HELP - Displays some help about a specific command
-        /// </summary>
-        /// <returns></returns>
-        [Command("help")]
-        public async Task HelpAsync(string command)
-        {
-            var result = _service.Search(Context, command);
-            if (!result.IsSuccess)
-            {
-                await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
-                return;
-            }
-            string prefix = _config["prefix"];
-            var builder = new EmbedBuilder()
-            {
-                Color = new Color(114, 137, 218),
-                Description = $"Here are some commands like **{command}**"
-            };
-
-            foreach (var match in result.Commands)
-            {
-                var cmd = match.Command;
-                builder.AddField(x =>
-                {
-                    x.Name = $"({string.Join("|", cmd.Aliases)})";
-                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" + 
-                              $"Summary: {cmd.Summary}";
-                    x.IsInline = false;
-                });
-            }
-            await ReplyAsync("", false, builder.Build());
         }
 
         #endregion Help
@@ -156,7 +237,45 @@ namespace Sharpy.Modules
         public async Task Version()
         {
             await Context.Message.DeleteAsync();
-            await ReplyAsync($"Hello {Context.User.Mention} ! I am {_client.CurrentUser.Username} v{Sharpy.GetVersion()}.");
+            var arch = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture;
+            var OSdesc = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+
+            var builder = new EmbedBuilder();
+
+            builder.WithTitle($"Bot Informations");
+            builder.WithDescription($"{_client.CurrentUser.Mention} - {_client.CurrentUser.Username}#{_client.CurrentUser.Discriminator}");
+
+            EmbedFieldBuilder field = new EmbedFieldBuilder
+            {
+                IsInline = true,
+                Name = "Bot : ",
+                Value = Assembly.GetExecutingAssembly().GetName().Name
+            };
+            builder.AddField(field);
+
+            field = new EmbedFieldBuilder
+            {
+                IsInline = true,
+                Name = "Version : ",
+                Value = 'v' + Sharpy.GetVersion()
+            };
+            builder.AddField(field);
+
+            field = new EmbedFieldBuilder
+            {
+                IsInline = true,
+                Name = "Running on : ",
+                Value = $"{OSdesc} ({arch})"
+            };
+            builder.AddField(field);
+
+            builder.WithThumbnailUrl(_client.CurrentUser.GetAvatarUrl());
+            builder.WithColor(Color.Blue);
+
+            var embed = builder.Build();
+            await Context.Channel.SendMessageAsync("", false, embed);
+
+            //await ReplyAsync($"Hello {Context.User.Mention} ! I am {_client.CurrentUser.Username} v{Sharpy.GetVersion()}.");
         }
 
         #endregion version
@@ -206,6 +325,7 @@ namespace Sharpy.Modules
         [Alias("r")]
         public async Task Roll(string dice)
         {
+            
             try
             {
                 var result = dice
@@ -248,8 +368,10 @@ namespace Sharpy.Modules
         /// <param name="stat"></param>
         /// <returns></returns>
         [Command("status")]
+        [Summary("Change the status of the bot")]
         public async Task Status(string stat = "")
         {
+            await Context.Message.DeleteAsync();
             if ( stat == null ||stat == "")
                 await _client.SetGameAsync($"Ready to meet {Assembly.GetExecutingAssembly().GetName().Name} v{Sharpy.GetVersion()} ?");
             else
@@ -299,7 +421,7 @@ namespace Sharpy.Modules
                 //    await ReplyAsync($"{Context.User.Mention} please provide a valid song URL");
                 //    return;
                 //}
-                DownloadedVideo video = await YoutubeDownloadService.GetVideoData(url);
+                DownloadedVideo video = await YouTubeDownloadService.GetVideoData(url);
                 if (!File.Exists(Path.Combine("Songs", $"{video.DisplayID}.mp3")))
                 {
                     var downloadAnnouncement = await ReplyAsync($"{Context.User.Mention} attempting to download {url}");
@@ -324,7 +446,7 @@ namespace Sharpy.Modules
                     await ReplyAsync($"I can't connect to your Voice Channel.");
                 }
                 else
-                { SongService.Queue(Context.Guild, video, _voiceChannel, Context.Message.Channel); }
+                { SongService.Queue(video, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
             { Log.Information($"Error while processing song requet: {e}"); }
@@ -363,7 +485,7 @@ namespace Sharpy.Modules
                 }
 
                 var downloadAnnouncement = await ReplyAsync($"{Context.User.Mention} attempting to open {url}");
-                var stream = await YoutubeDownloadService.GetLivestreamData(url);
+                var stream = await YouTubeDownloadService.GetLivestreamData(url);
                 await downloadAnnouncement.DeleteAsync();
 
                 if (stream == null)
@@ -385,7 +507,7 @@ namespace Sharpy.Modules
                     await ReplyAsync($"I can't connect to your Voice Channel.");
                 }
                 else
-                { SongService.Queue(Context.Guild, stream, _voiceChannel, Context.Message.Channel); }
+                { SongService.Queue(stream, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
             { Log.Information($"Error while processing song requet: {e}"); }

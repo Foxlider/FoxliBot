@@ -45,7 +45,7 @@ namespace Sharpy.Services.YouTube
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public async Task<StreamMetadata> GetLivestreamData(string url)
+        public static async Task<StreamMetadata> GetLivestreamData(string url)
         {
             var youtubeDl = StartYoutubeDl("--print-json --skip-download " + url);
             var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
@@ -60,7 +60,7 @@ namespace Sharpy.Services.YouTube
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public async Task<DownloadedVideo> GetVideoData(string search)
+        public static async Task<DownloadedVideo> GetVideoData(string search)
         {
             var youtubeDl = StartYoutubeDl($"--print-json --skip-download ytsearch:\"{search}\"");
             var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
@@ -71,7 +71,7 @@ namespace Sharpy.Services.YouTube
         }
 
         private static Process StartYoutubeDl(string arguments)
-        {
+        { 
             var youtubeDlStartupInfo = new ProcessStartInfo
             {
                 UseShellExecute = false,

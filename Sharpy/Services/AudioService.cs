@@ -214,7 +214,7 @@ namespace Sharpy.Services
         /// <param name="video"></param>
         /// <param name="voiceChannel"></param>
         /// <param name="messageChannel"></param>
-        public async void Queue(IGuild guild, IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
+        public async void Queue(IPlayable video, IVoiceChannel voiceChannel, IMessageChannel messageChannel)
         {
             bool firstConnexion = false;
             if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion tempsVoice))
@@ -231,7 +231,7 @@ namespace Sharpy.Services
                 firstConnexion = true;
                 
             }
-            ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
+            ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion voice);
 
             voice.Queue.Add(video);
 
