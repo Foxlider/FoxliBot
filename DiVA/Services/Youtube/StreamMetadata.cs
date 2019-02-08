@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Linq;
 
-namespace Sharpy.Services.YouTube
+namespace DiVA.Services.YouTube
 {
     /// <summary>
     /// JSON metadata of a stream

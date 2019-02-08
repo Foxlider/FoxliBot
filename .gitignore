@@ -18,8 +18,8 @@
 /.svn/*
 /Components/
 /Components/*
-/packages/
-/packages/*
+# /packages/
+# /packages/*
 /packages_old/
 /packages_old/*
 /bin/

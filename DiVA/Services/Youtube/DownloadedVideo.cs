@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 
-namespace Sharpy.Services.YouTube
+namespace DiVA.Services.YouTube
 {
     /// <summary>
     /// Represents a downloaded video.

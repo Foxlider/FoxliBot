@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Sharpy.Services
+namespace DiVA.Services
 {
     ///// <summary>
     ///// Audio service
@@ -199,7 +199,7 @@ namespace Sharpy.Services
             {
                 ConnectedChannels.TryGetValue(guild.Id, out VoiceConnexion voice);
                 var songQueue = voice.Queue;
-                Log.Information($"Skipped {songQueue.Count} songs");
+                Log.Information($"Skipped {songQueue.Count} songs", "Audio Skip");
                 songQueue.Clear();
                 return songQueue;
             }
@@ -219,7 +219,7 @@ namespace Sharpy.Services
             bool firstConnexion = false;
             if (!ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion tempsVoice))
             {
-                Log.Information("Connecting to voice channel");
+                Log.Information("Connecting to voice channel", "Audio Queue");
                 VoiceConnexion connexion = new VoiceConnexion
                 {
                     Channel = voiceChannel,
@@ -227,7 +227,7 @@ namespace Sharpy.Services
                     Client = await voiceChannel.ConnectAsync()
                 };
                 if (ConnectedChannels.TryAdd(voiceChannel.Guild.Id, connexion))
-                { Log.Information("Connected!"); }
+                { Log.Information("Connected!", "Audio Queue"); }
                 firstConnexion = true;
                 
             }
@@ -260,7 +260,7 @@ namespace Sharpy.Services
             ConnectedChannels.TryGetValue(voiceChannel.Guild.Id, out VoiceConnexion voice);
             while (voice.Queue.Count > 0)
             {
-                Log.Information("Waiting for songs");
+                Log.Information("Waiting for songs", "Audio Request");
                 NowPlaying = voice.Queue.FirstOrDefault();
                 try
                 {
@@ -270,7 +270,7 @@ namespace Sharpy.Services
                     NowPlaying.OnPostPlay();
                 }
                 catch (Exception e)
-                { Log.Information($"Error while playing song: {e}"); }
+                { Log.Warning($"Error while playing song: {e}", "Audio Queue"); }
             }
             await voice.Channel.DisconnectAsync();
             ConnectedChannels.TryRemove(voiceChannel.Guild.Id, out VoiceConnexion tempVoice);

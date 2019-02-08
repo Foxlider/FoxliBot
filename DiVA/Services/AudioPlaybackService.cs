@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Sharpy.Services
+namespace DiVA.Services
 {
     /// <summary>
     /// Audio Player Service
@@ -27,7 +27,7 @@ namespace Sharpy.Services
             await output.CopyToAsync(discord);
             await discord.FlushAsync();
             _currentProcess.WaitForExit();
-            Log.Information($"ffmpeg exited with code {_currentProcess.ExitCode}");
+            Log.Information($"ffmpeg exited with code {_currentProcess.ExitCode}", "Audio Send");
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Sharpy.Services
                 RedirectStandardOutput = true
             };
 
-            Log.Information($"Starting ffmpeg with args {ffmpeg.Arguments}");
+            Log.Information($"Starting ffmpeg with args {ffmpeg.Arguments}", "Audio Create");
             return Process.Start(ffmpeg);
         }
     }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Sharpy.Services.YouTube
+namespace DiVA.Services.YouTube
 {
     /// <summary>
     /// Youtube Downloader
@@ -29,13 +29,13 @@ namespace Sharpy.Services.YouTube
 
             if (youtubeDl == null)
             {
-                Log.Information("Error: Unable to start process");
+                Log.Warning("Error: Unable to start process", "Audio Download");
                 return null;
             }
 
             var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
             youtubeDl.WaitForExit();
-            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}");
+            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}", "Audio Download");
 
             return JsonConvert.DeserializeObject<DownloadedVideo>(jsonOutput);
         }
@@ -50,7 +50,7 @@ namespace Sharpy.Services.YouTube
             var youtubeDl = StartYoutubeDl("--print-json --skip-download " + url);
             var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
             youtubeDl.WaitForExit();
-            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}");
+            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}", "Audio Download");
 
             return JsonConvert.DeserializeObject<StreamMetadata>(jsonOutput);
         }
@@ -65,7 +65,7 @@ namespace Sharpy.Services.YouTube
             var youtubeDl = StartYoutubeDl($"--print-json --skip-download ytsearch:\"{search}\"");
             var jsonOutput = await youtubeDl.StandardOutput.ReadToEndAsync();
             youtubeDl.WaitForExit();
-            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}");
+            Log.Information($"Download completed with exit code {youtubeDl.ExitCode}", "Audio Download");
 
             return JsonConvert.DeserializeObject<DownloadedVideo>(jsonOutput);
         }
@@ -81,10 +81,8 @@ namespace Sharpy.Services.YouTube
                 Arguments = arguments
             };
 
-            Log.Information($"Starting youtube-dl with arguments: {youtubeDlStartupInfo.Arguments}");
+            Log.Information($"Starting youtube-dl with arguments: {youtubeDlStartupInfo.Arguments}", "Audio Download");
             return Process.Start(youtubeDlStartupInfo);
         }
-
-
     }
 }

@@ -4,10 +4,10 @@ using Moq;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using Sharpy;
+using DiVA;
 using Microsoft.Extensions.DependencyInjection;
-using Sharpy.Services.YouTube;
-using Sharpy.Services;
+using DiVA.Services.YouTube;
+using DiVA.Services;
 using System.Reflection;
 
 namespace Tests

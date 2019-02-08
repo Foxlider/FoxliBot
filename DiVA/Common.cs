@@ -1,42 +1,41 @@
 ﻿using Discord;
-using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Sharpy.Services;
-using Sharpy.Services.YouTube;
+using DiVA.Helpers;
+using DiVA.Services;
+using DiVA.Services.YouTube;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Sharpy.Modules
+namespace DiVA.Modules
 {
     // Create a module with no prefix
     /// <summary>
     /// Common commands module
     /// </summary>
     [Name("Common")]
-    [Summary("Common commands for Sharpy")]
+    [Summary("Common commands for DiVA")]
     public class Common : ModuleBase
     {
         private readonly CommandService _service;
         private readonly IConfigurationRoot _config;
         private readonly DiscordSocketClient _client;
+        Random __rnd = new Random();
         /// <summary>
         /// Common Commands module builder
         /// </summary>
         /// <param name="service"></param>
         public Common(CommandService service)
         {
-            _client = Sharpy.client;
+            _client = DiVA.client;
             _service = service;
-            _config = Sharpy.Configuration;
+            _config = DiVA.Configuration;
         }
 
         #region COMMANDS
@@ -57,6 +56,21 @@ namespace Sharpy.Modules
         }
 
         #endregion echo
+
+        #region hello
+        /// <summary>
+        /// Says hello
+        /// </summary>
+        /// <returns></returns>
+        [Command("hello"), Summary("Says hello")]
+        [Alias("hi")]
+        public async Task Hello()
+        {
+            var choice = __rnd.Next(10);
+            await CommandHelper.SayHelloAsync(Context.Channel, Context.Client, Context.User, __rnd);
+            await Context.Message.DeleteAsync();
+        }
+        #endregion hello
 
         #region userinfo
         /// <summary>
@@ -257,7 +271,7 @@ namespace Sharpy.Modules
             {
                 IsInline = true,
                 Name = "Version : ",
-                Value = 'v' + Sharpy.GetVersion()
+                Value = 'v' + DiVA.GetVersion()
             };
             builder.AddField(field);
 
@@ -275,7 +289,7 @@ namespace Sharpy.Modules
             var embed = builder.Build();
             await Context.Channel.SendMessageAsync("", false, embed);
 
-            //await ReplyAsync($"Hello {Context.User.Mention} ! I am {_client.CurrentUser.Username} v{Sharpy.GetVersion()}.");
+            //await ReplyAsync($"Hello {Context.User.Mention} ! I am {_client.CurrentUser.Username} v{DiVA.GetVersion()}.");
         }
 
         #endregion version
@@ -290,9 +304,9 @@ namespace Sharpy.Modules
         public async Task Choose([Remainder]string cString)
         {
             string[] choices = cString.Split().ToArray();
-            Random rnd = new Random();
+            Random _rnd = new Random();
             string answer = "";
-            string chosenOne = choices[rnd.Next(choices.Length)];
+            string chosenOne = choices[_rnd.Next(choices.Length)];
             if (choices[0].StartsWith("<@") && choices[0].EndsWith(">"))
             { 
                 answer = chosenOne;
@@ -308,7 +322,7 @@ namespace Sharpy.Modules
                 }
             }
             //if(choices[0].StartsWith("<@") && choices[0])
-            //await ReplyAsync(choices[rnd.Next(choices.Length)]);
+            //await ReplyAsync(choices[_rnd.Next(choices.Length)]);
             await ReplyAsync(answer);
             await Context.Message.DeleteAsync();
         } 
@@ -345,9 +359,9 @@ namespace Sharpy.Modules
                 string msg = $"{Context.User.Mention} rolled {result[0]}d{result[1]}";
                 var range = Enumerable.Range(0, result[0]);
                 int[] dices = new int[result[0]];
-                Random rnd = new Random();
+                Random _rnd = new Random();
                 foreach (var r in range)
-                { dices[r] = rnd.Next(1, result[1]); }
+                { dices[r] = _rnd.Next(1, result[1]); }
                 msg += "\n [ **";
                 msg += string.Join("** | **", dices);
                 msg += "** ]";
@@ -360,7 +374,7 @@ namespace Sharpy.Modules
         }
 
         #endregion roll
-
+        
         #region status
         /// <summary>
         /// COmmand status
@@ -373,12 +387,29 @@ namespace Sharpy.Modules
         {
             await Context.Message.DeleteAsync();
             if ( stat == null ||stat == "")
-                await _client.SetGameAsync($"Ready to meet {Assembly.GetExecutingAssembly().GetName().Name} v{Sharpy.GetVersion()} ?");
+                await _client.SetGameAsync($"Ready to meet {Assembly.GetExecutingAssembly().GetName().Name} v{DiVA.GetVersion()} ?");
             else
                 await _client.SetGameAsync(stat);
         }
 
         #endregion status
+
+        #region cmdtest
+
+        [Command("consoletest")]
+        [Summary("TestConsole")]
+        public async Task ConsoleTest(string stat = "")
+        {
+            await Context.Message.DeleteAsync();
+            Log.Neutral("Neutral", "Commands ConsoleTest");
+            Log.Information("Information", "Commands ConsoleTest");
+            Log.Verbose("Verbose", "Commands ConsoleTest");
+            Log.Debug("Debug", "Commands ConsoleTest");
+            Log.Warning("Warning", "Commands ConsoleTest");
+            Log.Error("Error", "Commands ConsoleTest");
+            Log.Critical("Critical", "Commands ConsoleTest");
+        }
+        #endregion cmdtest
 
         #endregion COMMANDS
     }
@@ -387,7 +418,7 @@ namespace Sharpy.Modules
     /// Audio commands module
     /// </summary>
     [Name("Music")]
-    [Summary("Audio commands for Sharpy")]
+    [Summary("Audio commands for DiVA")]
     public class Audio : ModuleBase
     {
         /// <summary>
@@ -442,16 +473,34 @@ namespace Sharpy.Modules
                 var _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
                 if (_voiceChannel == null)
                 {
-                    Console.WriteLine("Error joining Voice Channel!", ConsoleColor.Red);
+                    Log.Warning("Error joining Voice Channel!", "Audio Request");
                     await ReplyAsync($"I can't connect to your Voice Channel.");
                 }
                 else
                 { SongService.Queue(video, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
-            { Log.Information($"Error while processing song requet: {e}"); }
+            { Log.Warning($"Error while processing song requet: {e}", "Audio Request"); }
         }
         #endregion
+
+        //#region saytts
+        ///// <summary>
+        ///// Function Play
+        ///// </summary>
+        ///// <param name="url"></param>
+        ///// <returns></returns>
+        
+        //[Command("saytts", RunMode = RunMode.Async)]
+        //[Alias("tts", "speak")]
+        //[Summary("Says something")]
+        //public async Task SayTTS([Remainder, Summary("Sentence")] string speak)
+        //{
+        //    SpeechSynthesizer reader = new SpeechSynthesizer();
+        //    reader.Rate = (int)2;
+        //    reader.Speak("Hello this is an example expression from the computers TTS engine in C-Sharp);
+        //}
+        //#endregion saytts
 
 
         #region test
@@ -497,20 +546,20 @@ namespace Sharpy.Modules
                 stream.Requester = Context.User.Mention;
                 stream.Url = url;
 
-                Log.Information($"Attempting to stream {stream}");
+                Log.Information($"Attempting to stream {stream}", "Audio Stream");
 
                 await ReplyAsync($"{Context.User.Mention} queued **{stream.Title}** | `{stream.DurationString}`");
                 var _voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
                 if (_voiceChannel == null)
                 {
-                    Console.WriteLine("Error joining Voice Channel!", ConsoleColor.Red);
+                    Log.Warning("Error joining Voice Channel!", "Audio Stream");
                     await ReplyAsync($"I can't connect to your Voice Channel.");
                 }
                 else
                 { SongService.Queue(stream, _voiceChannel, Context.Message.Channel); }
             }
             catch (Exception e)
-            { Log.Information($"Error while processing song requet: {e}"); }
+            { Log.Warning($"Error while processing song requet: {e}", "Audio Stream"); }
         }
         #endregion
 

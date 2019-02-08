@@ -4,8 +4,9 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Sharpy.Services;
-using Sharpy.Services.YouTube;
+using DiVA.Helpers;
+using DiVA.Services;
+using DiVA.Services.YouTube;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,9 +14,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Sharpy
+namespace DiVA
 {
-    class Sharpy
+    class DiVA
     {
         private CommandService commands;
         public static DiscordSocketClient client;
@@ -28,12 +29,12 @@ namespace Sharpy
         public static async Task RunAsync(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
-            var sharpy = new Sharpy(args);
-            await sharpy.RunAsync();
+            var DiVA = new DiVA(args);
+            await DiVA.RunAsync();
         }
 
 
-        public Sharpy(string[] args)
+        public DiVA(string[] args)
         {
             TryGenerateConfiguration();
             var builder = new ConfigurationBuilder()        // Create a new instance of the config builder
@@ -48,7 +49,7 @@ namespace Sharpy
         /// <returns></returns>
         public async Task RunAsync()
         {
-            Console.WriteLine(
+            Log.Neutral(
                 $"Booting up...\n" +
                 $"____________\n" +
                 $"{Assembly.GetExecutingAssembly().GetName().Name} " +
@@ -85,15 +86,14 @@ namespace Sharpy
             await InstallCommands();
             if (Configuration["tokens:discord"] == null || Configuration["tokens:discord"] == "")
             {
-                Log.Warning("Impossible to read Configuration.");
-                Log.Neutral("Do you want to edit the Discord Token ? (Y/n)");
+                Log.Error("Impossible to read Configuration.", "DiVA Login");
+                Log.Neutral("Do you want to edit the Discord Token ? (Y/n)\n", "DiVA Login");
                 var answer = Console.ReadKey();
-                Log.Neutral("");
                 if (answer.Key == ConsoleKey.Enter || answer.Key == ConsoleKey.Y)
                 { EditToken(); }
                 else
                 {
-                    Log.Warning("Shutting Down...\nPress Enter to continue.");
+                    Log.Warning("Shutting Down...\nPress Enter to continue.", "DiVA Logout");
                     Console.ReadKey();
                     Environment.Exit(-1);
                 }
@@ -103,17 +103,17 @@ namespace Sharpy
 
             client.Ready += () =>
             {
-                Console.WriteLine($"{client.CurrentUser.Username}#{client.CurrentUser.Discriminator} is connected !\n\n" +
-                    $"__[ CONNECTED TO ]__\n");
+                Log.Neutral($"{client.CurrentUser.Username}#{client.CurrentUser.Discriminator} is connected !\n\n" +
+                    $"__[ CONNECTED TO ]__\n", "DiVA Login");
                 foreach (var guild in client.Guilds)
                 {
-                    Console.WriteLine(
+                    Log.Neutral(
                         $"\t_______________\n" +
                         $"\t{guild.Name} \n" +
                         $"\tOwned by {guild.Owner.Nickname}#{guild.Owner.Discriminator}\n" +
-                        $"\t{guild.MemberCount} members");
+                        $"\t{guild.MemberCount} members", "DiVA Login");
                 }
-                Console.WriteLine("\t_______________");
+                Log.Neutral("\t_______________", "DiVA Login");
                 //ConsoleColor[] colors = (ConsoleColor[])ConsoleColor.GetValues(typeof(ConsoleColor));
                 //foreach (var color in colors)
                 //{
@@ -128,12 +128,14 @@ namespace Sharpy
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
-        
+
 
         public async Task InstallCommands()
         {
             // Hook the MessageReceived Event into our Command Handler
             client.MessageReceived += HandleCommand;
+            client.UserLeft += UserLeftGuildHandler;
+            client.UserJoined += UserJoinedGuildHandler;
             // Discover all of the commands in this assembly and load them.
             await commands.AddModulesAsync(Assembly.GetEntryAssembly(), services);
         }
@@ -161,6 +163,20 @@ namespace Sharpy
                 await context.Channel.SendMessageAsync(result.ErrorReason);
         }
 
+        private async Task UserJoinedGuildHandler(SocketGuildUser param)
+        {
+            Random _rnd = new Random();
+            var channel = client.GetChannel(param.Guild.DefaultChannel.Id) as SocketTextChannel;
+            await CommandHelper.SayHelloAsync(channel, client, param as IUser, _rnd);
+        }
+
+        private async Task UserLeftGuildHandler(SocketGuildUser param)
+        {
+            Random _rnd = new Random();
+            var channel = client.GetChannel(param.Guild.DefaultChannel.Id) as SocketTextChannel;
+            await channel.SendMessageAsync($"{param.Mention} left us... Say bye ! ");
+        }
+
         static void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
             try
@@ -168,7 +184,7 @@ namespace Sharpy
             catch { }
             finally
             { client.Dispose(); }
-            Log.Warning("Shutting Down...");
+            Log.Warning("Shutting Down...", "DiVA Logout");
             Environment.Exit(0);
         }
 
@@ -193,8 +209,9 @@ namespace Sharpy
                 default:
                     break;
             }
-            Console.WriteLine($"[{message.Severity} {message.Source}][{DateTime.Now.ToString()}] : {message.Message}");
-            Console.ResetColor();
+            //Console.WriteLine($"[{message.Severity} {message.Source}][{DateTime.Now.ToString()}] : {message.Message}");
+            Log.Message(message.Severity, message.Message, message.Source);
+            //Console.ResetColor();
             return Task.CompletedTask;
         }
 
@@ -203,7 +220,7 @@ namespace Sharpy
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, "config.json");
             if (File.Exists(filePath)) return false;
-            object config = new SharpyConfiguration();
+            object config = new DiVAConfiguration();
             var json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(filePath, json);
             return true;
@@ -237,11 +254,11 @@ namespace Sharpy
                 }
             }
 
-            Log.Neutral("Please enter the bot's token below.");
+            Log.Neutral("Please enter the bot's token below.", "DiVA Login");
             string answer = Console.ReadLine();
             Configuration["tokens:discord"] = answer;
             var filePath = Path.Combine(AppContext.BaseDirectory, "config.json");
-            object config = new SharpyConfiguration(Configuration["prefix"], new Tokens(Configuration["tokens:discord"]));
+            object config = new DiVAConfiguration(Configuration["prefix"], new Tokens(Configuration["tokens:discord"]));
             var json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.Delete(filePath);
             File.WriteAllText(filePath, json);
@@ -249,7 +266,7 @@ namespace Sharpy
 
 
         public void SetDefaultStatus()
-        { client.SetGameAsync($"Ready to meet {Assembly.GetExecutingAssembly().GetName().Name} v{GetVersion()} ?"); }
+        { client.SetGameAsync($"Discord Virtual Assistant or DiVA v{GetVersion()}"); }
 
         public static string GetVersion()
         {

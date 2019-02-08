@@ -1,144 +1,151 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>Sharpy</name>
+        <name>DiVA</name>
     </assembly>
     <members>
-        <member name="T:Sharpy.Modules.Common">
+        <member name="T:DiVA.Modules.Common">
             <summary>
             Common commands module
             </summary>
         </member>
-        <member name="M:Sharpy.Modules.Common.#ctor(Discord.Commands.CommandService)">
+        <member name="M:DiVA.Modules.Common.#ctor(Discord.Commands.CommandService)">
             <summary>
             Common Commands module builder
             </summary>
             <param name="service"></param>
         </member>
-        <member name="M:Sharpy.Modules.Common.Say(System.String)">
+        <member name="M:DiVA.Modules.Common.Say(System.String)">
             <summary>
             SAY - Echos a message
             </summary>
             <param name="echo"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.UserInfo(Discord.IUser)">
+        <member name="M:DiVA.Modules.Common.Hello">
+            <summary>
+            Says hello
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DiVA.Modules.Common.UserInfo(Discord.IUser)">
             <summary>
             USERINFO - Returns the information of a user
             </summary>
             <param name="user"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.HelpAsync">
+        <member name="M:DiVA.Modules.Common.HelpAsync(System.String)">
             <summary>
             HELP - Displays some help
             </summary>
+            <param name="command"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.HelpAsync(System.String)">
-            <summary>
-            HELP - Displays some help about a specific command
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Sharpy.Modules.Common.Version">
+        <member name="M:DiVA.Modules.Common.Version">
             <summary>
             Command Version
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.Choose(System.String)">
+        <member name="M:DiVA.Modules.Common.Choose(System.String)">
             <summary>
             Command choose
             </summary>
             <param name="cString">Multiple strings to choose from</param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.Roll(System.String)">
+        <member name="M:DiVA.Modules.Common.Roll(System.String)">
             <summary>
             Command roll
             </summary>
             <param name="dice">string of the dices (ex. 1d10)</param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Common.Status(System.String)">
+        <member name="M:DiVA.Modules.Common.Status(System.String)">
             <summary>
             COmmand status
             </summary>
             <param name="stat"></param>
             <returns></returns>
         </member>
-        <member name="T:Sharpy.Modules.Audio">
+        <member name="T:DiVA.Modules.Audio">
             <summary>
             Audio commands module
             </summary>
         </member>
-        <member name="P:Sharpy.Modules.Audio.YoutubeDownloadService">
+        <member name="P:DiVA.Modules.Audio.YoutubeDownloadService">
             <summary>
             Downloader from YouTube
             </summary>
         </member>
-        <member name="P:Sharpy.Modules.Audio.SongService">
+        <member name="P:DiVA.Modules.Audio.SongService">
             <summary>
             Music handler
             </summary>
         </member>
-        <member name="M:Sharpy.Modules.Audio.Request(System.String)">
+        <member name="M:DiVA.Modules.Audio.Request(System.String)">
             <summary>
             Function Play
             </summary>
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.SoundTest">
+        <member name="M:DiVA.Modules.Audio.SoundTest">
             <summary>
             Sound test (watch your ears)
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.Stream(System.String)">
+        <member name="M:DiVA.Modules.Audio.Stream(System.String)">
             <summary>
             Stream Player
             </summary>
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.ClearQueue">
+        <member name="M:DiVA.Modules.Audio.ClearQueue">
             <summary>
             Command Clear
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.Stop">
+        <member name="M:DiVA.Modules.Audio.Stop">
             <summary>
             Command stop
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.SkipSong">
+        <member name="M:DiVA.Modules.Audio.SkipSong">
             <summary>
             Command Skip
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.SongList">
+        <member name="M:DiVA.Modules.Audio.SongList">
             <summary>
             Command queue
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Modules.Audio.NowPlaying">
+        <member name="M:DiVA.Modules.Audio.NowPlaying">
             <summary>
             Command nowPlaying
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Sharpy.Services.AudioPlaybackService">
+        <member name="M:DiVA.DiVA.RunAsync">
+            <summary>
+            Main Thread
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:DiVA.Services.AudioPlaybackService">
             <summary>
             Audio Player Service
             </summary>
         </member>
-        <member name="M:Sharpy.Services.AudioPlaybackService.SendAsync(Discord.Audio.IAudioClient,System.String,System.Int32)">
+        <member name="M:DiVA.Services.AudioPlaybackService.SendAsync(Discord.Audio.IAudioClient,System.String,System.Int32)">
             <summary>
             Voice sender
             </summary>
@@ -147,12 +154,12 @@
             <param name="speedModifier"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.AudioPlaybackService.StopCurrentOperation">
+        <member name="M:DiVA.Services.AudioPlaybackService.StopCurrentOperation">
             <summary>
             Skipper
             </summary>
         </member>
-        <member name="M:Sharpy.Services.AudioPlaybackService.CreateStream(System.String,System.Int32)">
+        <member name="M:DiVA.Services.AudioPlaybackService.CreateStream(System.String,System.Int32)">
             <summary>
             Stream creator
             </summary>
@@ -160,51 +167,51 @@
             <param name="speedModifier"></param>
             <returns></returns>
         </member>
-        <member name="T:Sharpy.Services.AudioService">
+        <member name="T:DiVA.Services.AudioService">
             <summary>
             Audio service
             </summary>
         </member>
-        <member name="F:Sharpy.Services.AudioService.ConnectedChannels">
+        <member name="F:DiVA.Services.AudioService.ConnectedChannels">
             <summary>
             List of VoiceChannels by server
             </summary>
         </member>
-        <member name="M:Sharpy.Services.AudioService.#ctor">
+        <member name="M:DiVA.Services.AudioService.#ctor">
             <summary>
             Service CTOR
             </summary>
         </member>
-        <member name="P:Sharpy.Services.AudioService.AudioPlaybackService">
+        <member name="P:DiVA.Services.AudioService.AudioPlaybackService">
             <summary>
             Playback service
             </summary>
         </member>
-        <member name="P:Sharpy.Services.AudioService.NowPlaying">
+        <member name="P:DiVA.Services.AudioService.NowPlaying">
             <summary>
             NowPlaying var
             </summary>
         </member>
-        <member name="M:Sharpy.Services.AudioService.Quit(Discord.IGuild)">
+        <member name="M:DiVA.Services.AudioService.Quit(Discord.IGuild)">
             <summary>
             Quit the voice channel
             </summary>
             <param name="guild"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.AudioService.Next">
+        <member name="M:DiVA.Services.AudioService.Next">
             <summary>
             Skips current song
             </summary>
         </member>
-        <member name="M:Sharpy.Services.AudioService.Clear(Discord.IGuild)">
+        <member name="M:DiVA.Services.AudioService.Clear(Discord.IGuild)">
             <summary>
             Clear queue
             </summary>
             <param name="guild"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.AudioService.Queue(Discord.IGuild,Sharpy.Services.IPlayable,Discord.IVoiceChannel,Discord.IMessageChannel)">
+        <member name="M:DiVA.Services.AudioService.Queue(DiVA.Services.IPlayable,Discord.IVoiceChannel,Discord.IMessageChannel)">
             <summary>
             Add a song to the queue
             </summary>
@@ -213,271 +220,265 @@
             <param name="voiceChannel"></param>
             <param name="messageChannel"></param>
         </member>
-        <member name="M:Sharpy.Services.AudioService.SongList(Discord.IGuild)">
+        <member name="M:DiVA.Services.AudioService.SongList(Discord.IGuild)">
             <summary>
             Lists current songs
             </summary>
             <param name="guild"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.AudioService.ProcessQueue(Discord.IVoiceChannel,Discord.IMessageChannel)">
+        <member name="M:DiVA.Services.AudioService.ProcessQueue(Discord.IVoiceChannel,Discord.IMessageChannel)">
             <summary>
             Handled the Queue of a Voice Client
             </summary>
             <param name="voiceChannel"></param>
             <param name="messageChannel"></param>
         </member>
-        <member name="T:Sharpy.Services.IPlayable">
+        <member name="T:DiVA.Services.IPlayable">
             <summary>
             Define a Playable Item. Can be either a Stream or a Video
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.Url">
+        <member name="P:DiVA.Services.IPlayable.Url">
             <summary>
             URL of the item
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.Uri">
+        <member name="P:DiVA.Services.IPlayable.Uri">
             <summary>
             URI of the item
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.Title">
+        <member name="P:DiVA.Services.IPlayable.Title">
             <summary>
             Title of the item
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.Requester">
+        <member name="P:DiVA.Services.IPlayable.Requester">
             <summary>
             Requester of the item
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.DurationString">
+        <member name="P:DiVA.Services.IPlayable.DurationString">
             <summary>
             Duration of the item as a string
             </summary>
         </member>
-        <member name="P:Sharpy.Services.IPlayable.Speed">
+        <member name="P:DiVA.Services.IPlayable.Speed">
             <summary>
             Speed of the item
             </summary>
         </member>
-        <member name="M:Sharpy.Services.IPlayable.OnPostPlay">
+        <member name="M:DiVA.Services.IPlayable.OnPostPlay">
             <summary>
             NOT IMPLEMENTED
             </summary>
         </member>
-        <member name="T:Sharpy.Services.VoiceConnexion">
+        <member name="T:DiVA.Services.VoiceConnexion">
             <summary>
             Represents a connexion to a voicechannel of a server
             </summary>
         </member>
-        <member name="P:Sharpy.Services.VoiceConnexion.Channel">
+        <member name="P:DiVA.Services.VoiceConnexion.Channel">
             <summary>
             Voice channel we are connected at
             </summary>
         </member>
-        <member name="P:Sharpy.Services.VoiceConnexion.Client">
+        <member name="P:DiVA.Services.VoiceConnexion.Client">
             <summary>
             Audio Client used by the channel
             </summary>
         </member>
-        <member name="P:Sharpy.Services.VoiceConnexion.Queue">
+        <member name="P:DiVA.Services.VoiceConnexion.Queue">
             <summary>
             Queue of Iplayables
             </summary>
         </member>
-        <member name="T:Sharpy.Services.YouTube.DownloadedVideo">
+        <member name="T:DiVA.Services.YouTube.DownloadedVideo">
             <summary>
             Represents a downloaded video.
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Title">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Title">
             <summary>
             Title of the video
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Duration">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Duration">
             <summary>
             Duration of the video in seconds.
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Url">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Url">
             <summary>
             The URL used to access the video site (note: not the actual video itself).
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.DisplayID">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.DisplayID">
             <summary>
             Unique ID of the video, e.g. YouTube video ID.
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.FileName">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.FileName">
             <summary>
             Name of the file it got stored on.
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Requester">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Requester">
             <summary>
             Person requesting the download
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.DurationString">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.DurationString">
             <summary>
             Duration of the IPlayable Item
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Uri">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Uri">
             <summary>
             Returns the Filename of a file
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.DownloadedVideo.Speed">
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.Speed">
             <summary>
             Speed modifier passed to ffmpeg (Frequency)
             </summary>
         </member>
-        <member name="M:Sharpy.Services.YouTube.DownloadedVideo.OnPostPlay">
+        <member name="M:DiVA.Services.YouTube.DownloadedVideo.OnPostPlay">
             <summary>
             After song Handler
             </summary>
         </member>
-        <member name="T:Sharpy.Services.YouTube.StreamFormatMetadata">
+        <member name="T:DiVA.Services.YouTube.StreamFormatMetadata">
             <summary>
             JSON metadata of a stream
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamFormatMetadata.Format">
+        <member name="P:DiVA.Services.YouTube.StreamFormatMetadata.Format">
             <summary>
             Stream Format
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamFormatMetadata.Url">
+        <member name="P:DiVA.Services.YouTube.StreamFormatMetadata.Url">
             <summary>
             Stream URL
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamFormatMetadata.Codec">
+        <member name="P:DiVA.Services.YouTube.StreamFormatMetadata.Codec">
             <summary>
             Stream audio codec
             </summary>
         </member>
-        <member name="T:Sharpy.Services.YouTube.StreamMetadata">
+        <member name="T:DiVA.Services.YouTube.StreamMetadata">
             <summary>
             Metadata of a stream
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Url">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Url">
             <summary>
             Stream URL
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Uri">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Uri">
             <summary>
             Stream URI
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Requester">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Requester">
             <summary>
             Stream requester
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.DurationString">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.DurationString">
             <summary>
             Stream Duration
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Speed">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Speed">
             <summary>
             Stream speed
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Title">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Title">
             <summary>
             Stream Title
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.ViewCount">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.ViewCount">
             <summary>
             Stream ViewCount
             </summary>
         </member>
-        <member name="P:Sharpy.Services.YouTube.StreamMetadata.Formats">
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.Formats">
             <summary>
             Stream formats
             </summary>
         </member>
-        <member name="M:Sharpy.Services.YouTube.StreamMetadata.OnPostPlay">
+        <member name="M:DiVA.Services.YouTube.StreamMetadata.OnPostPlay">
             <summary>
             TO BE OVERRIDDEN
             </summary>
         </member>
-        <member name="T:Sharpy.Services.YouTube.YouTubeDownloadService">
+        <member name="T:DiVA.Services.YouTube.YouTubeDownloadService">
             <summary>
             Youtube Downloader
             </summary>
         </member>
-        <member name="M:Sharpy.Services.YouTube.YouTubeDownloadService.DownloadVideo(Sharpy.Services.YouTube.DownloadedVideo)">
+        <member name="M:DiVA.Services.YouTube.YouTubeDownloadService.DownloadVideo(DiVA.Services.YouTube.DownloadedVideo)">
             <summary>
             Donwload a video
             </summary>
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.YouTube.YouTubeDownloadService.GetLivestreamData(System.String)">
+        <member name="M:DiVA.Services.YouTube.YouTubeDownloadService.GetLivestreamData(System.String)">
             <summary>
             Download a Livestream
             </summary>
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="M:Sharpy.Services.YouTube.YouTubeDownloadService.GetVideoData(System.String)">
+        <member name="M:DiVA.Services.YouTube.YouTubeDownloadService.GetVideoData(System.String)">
             <summary>
             Download a Livestream
             </summary>
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="T:Sharpy.LoggingService">
+        <member name="T:DiVA.LoggingService">
             <summary>
             Log service to handle Discord-side logs
             </summary>
         </member>
-        <member name="M:Sharpy.LoggingService.#ctor(Discord.WebSocket.DiscordSocketClient,Discord.Commands.CommandService)">
+        <member name="M:DiVA.LoggingService.#ctor(Discord.WebSocket.DiscordSocketClient,Discord.Commands.CommandService)">
             <summary>
             Logging service
             </summary>
             <param name="discord"></param>
             <param name="commands"></param>
         </member>
-        <member name="T:Sharpy.Log">
+        <member name="T:DiVA.Log">
             <summary>
             Logging service to handle Application-side logs
             </summary>
         </member>
-        <member name="M:Sharpy.Log.Information(System.String)">
+        <member name="M:DiVA.Log.Information(System.String,System.String)">
             <summary>
             Prints Informations in Blue
             </summary>
             <param name="message"></param>
         </member>
-        <member name="M:Sharpy.Log.Warning(System.String)">
+        <member name="M:DiVA.Log.Warning(System.String,System.String)">
             <summary>
             Prints Warnings in Red
             </summary>
             <param name="message"></param>
         </member>
-        <member name="M:Sharpy.Log.Neutral(System.String)">
+        <member name="M:DiVA.Log.Neutral(System.String,System.String)">
             <summary>
             Prints Neutral messages in White
             </summary>
             <param name="message"></param>
-        </member>
-        <member name="M:Sharpy.Sharpy.RunAsync">
-            <summary>
-            Main Thread
-            </summary>
-            <returns></returns>
         </member>
     </members>
 </doc>

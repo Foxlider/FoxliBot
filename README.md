@@ -1,5 +1,5 @@
 # FoxliBot
-Sharpy created to replace FoxliBot
+DiVA created to replace FoxliBot
 Written in C#
 
 # Installation : 

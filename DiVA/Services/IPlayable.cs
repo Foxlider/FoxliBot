@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sharpy.Services
+namespace DiVA.Services
 {
     /// <summary>
     /// Define a Playable Item. Can be either a Stream or a Video

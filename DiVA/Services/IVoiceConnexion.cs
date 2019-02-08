@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Sharpy.Services
+namespace DiVA.Services
 {
     /// <summary>
     /// Represents a connexion to a voicechannel of a server
