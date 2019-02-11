@@ -8,20 +8,17 @@
         public DiVAConfiguration(string prefix = "..", Tokens token = null)
         {
             this.Prefix = prefix;
-            if (DiVA.DEV_MODE)
-                this.Tokens = new Tokens("NTM4MzA2ODIxMzMzNzEyOTE2.DyyA9A.NR6IO59ORsQIcqVtY7jWxrH-IAo");
-            else if (token == null)
-                this.Tokens = token;
-            else
-                this.Tokens = token;
+            this.Tokens = token;
         }
     }
     internal class Tokens
     {
         public string Discord { get; set; }
-        public Tokens(string discord = "")
+        public string Youtube { get; set; }
+        public Tokens(string discord = "", string youtube = "")
         {
             this.Discord = discord;
+            this.Youtube = youtube;
         }
     }
 }

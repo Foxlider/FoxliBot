@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DiVA.Services
+﻿namespace DiVA.Services
 {
     /// <summary>
     /// Define a Playable Item. Can be either a Stream or a Video
@@ -33,6 +29,11 @@ namespace DiVA.Services
         /// Duration of the item as a string
         /// </summary>
         string DurationString { get; }
+
+        /// <summary>
+        /// FullPath of file
+        /// </summary>
+        string FullPath { get; }
 
         /// <summary>
         /// Speed of the item

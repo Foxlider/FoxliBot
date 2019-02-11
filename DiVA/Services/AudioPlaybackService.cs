@@ -1,5 +1,4 @@
 ﻿using Discord.Audio;
-using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -19,15 +18,34 @@ namespace DiVA.Services
         /// <param name="path"></param>
         /// <param name="speedModifier"></param>
         /// <returns></returns>
-        public async Task SendAsync(IAudioClient client, string path, int speedModifier)
+        public async Task SendAsync(IAudioClient client, string path)
         {
-            _currentProcess = CreateStream(path, speedModifier);
-            var output = _currentProcess.StandardOutput.BaseStream;
-            var discord = client.CreatePCMStream(AudioApplication.Mixed, bitrate: 48000, bufferMillis: 1000);
-            await output.CopyToAsync(discord);
-            await discord.FlushAsync();
-            _currentProcess.WaitForExit();
-            Log.Information($"ffmpeg exited with code {_currentProcess.ExitCode}", "Audio Send");
+            //_currentProcess = CreateStream(path, speedModifier);
+            //var output = _currentProcess.StandardOutput.BaseStream;
+            //var discord = client.CreatePCMStream(AudioApplication.Mixed, bitrate: 48000, bufferMillis: 2000);
+            //await output.CopyToAsync(discord);
+            //await discord.FlushAsync();
+            //await discord.DisposeAsync();
+            //_currentProcess.WaitForExit();
+
+            _currentProcess = CreateStream(path);
+            using (var discord = client.CreatePCMStream(AudioApplication.Mixed, bitrate: 48000, bufferMillis: 2000))
+            {
+                await Task.Delay(2000);
+                while (true)
+                {
+                    if (_currentProcess.HasExited)
+                        break;
+                    int blockSize = 2880;
+                    byte[] buffer = new byte[blockSize];
+                    int byteCount;
+                    byteCount = await _currentProcess.StandardOutput.BaseStream.ReadAsync(buffer, 0, blockSize);
+                    if (byteCount == 0)
+                        break;
+                    await discord.WriteAsync(buffer, 0, byteCount);
+                }
+                await discord.FlushAsync();
+            }
         }
 
         /// <summary>
@@ -35,7 +53,8 @@ namespace DiVA.Services
         /// </summary>
         public void StopCurrentOperation()
         {
-            _currentProcess.Kill();
+            _currentProcess.Close();
+            _currentProcess?.Kill();
             _currentProcess?.Dispose();
         }
 
@@ -45,7 +64,7 @@ namespace DiVA.Services
         /// <param name="path"></param>
         /// <param name="speedModifier"></param>
         /// <returns></returns>
-        private static Process CreateStream(string path, int speedModifier)
+        private static Process CreateStream(string path)
         {
             var ffmpeg = new ProcessStartInfo
             {

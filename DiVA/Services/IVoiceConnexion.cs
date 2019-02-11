@@ -1,8 +1,6 @@
 ﻿using Discord;
 using Discord.Audio;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace DiVA.Services
 {

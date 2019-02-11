@@ -1,12 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using DiVA.Helpers;
 using DiVA.Services;
 using DiVA.Services.YouTube;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -23,6 +23,7 @@ namespace DiVA
         private IServiceProvider services;
         public static IConfigurationRoot Configuration;
         public static bool DEV_MODE = false;
+        public static bool verbose = false;
 
         static void Main(string[] args) => RunAsync(args).GetAwaiter().GetResult();
 
@@ -41,6 +42,34 @@ namespace DiVA
                 .SetBasePath(AppContext.BaseDirectory)      // Specify the default location for the config file
                 .AddJsonFile("config.json");        // Add this (json encoded) file to the configuration
             Configuration = builder.Build();                // Build the configuration
+
+            foreach (var arg in args)
+            {
+                switch (arg)
+                {
+                    case "--cache_cleanup":
+                    case "-c":
+                        CacheCleanup();
+                        break;
+                    case "--verbose":
+                    case "-v":
+                        verbose = true;
+                        Log.Verbose("Verbose logging activated.", "Argument Handler");
+                        break;
+                    case "--help":
+                    case "-h":
+                        echoHelp();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void echoHelp()
+        {
+            Console.WriteLine("Work in progress... ");
+            Environment.Exit(0);
         }
 
         /// <summary>
@@ -55,20 +84,12 @@ namespace DiVA
                 $"{Assembly.GetExecutingAssembly().GetName().Name} " +
                 $"v{GetVersion()}\n" +
                 $"____________\n");
-
-            //Clearing Song folder
-            try
-            {
-                DirectoryInfo d = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "Songs"));
-                foreach (FileInfo file in d.GetFiles())
-                { file.Delete(); }
-            }
-            catch
-            { }
-            //Creating Websocket
+            var loglvl = LogSeverity.Info;
+            if (verbose)
+            { loglvl = LogSeverity.Debug; }
             client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Info
+                LogLevel = loglvl
             });
             client.Log += LogMessage;
             commands = new CommandService();
@@ -84,10 +105,11 @@ namespace DiVA
             //services = new ServiceCollection().BuildServiceProvider();             // Create a new instance of a service collection
 
             await InstallCommands();
-            if (Configuration["tokens:discord"] == null || Configuration["tokens:discord"] == "")
+            if (Configuration["tokens:discord"] == null || Configuration["tokens:discord"] == "" ||
+                Configuration["tokens:youtube"] == null || Configuration["tokens:youtube"] == "")
             {
                 Log.Error("Impossible to read Configuration.", "DiVA Login");
-                Log.Neutral("Do you want to edit the Discord Token ? (Y/n)\n", "DiVA Login");
+                Log.Neutral("Do you want to edit the configuration file ? (Y/n)\n", "DiVA Login");
                 var answer = Console.ReadKey();
                 if (answer.Key == ConsoleKey.Enter || answer.Key == ConsoleKey.Y)
                 { EditToken(); }
@@ -128,7 +150,6 @@ namespace DiVA
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
-
 
         public async Task InstallCommands()
         {
@@ -230,9 +251,7 @@ namespace DiVA
         {
             string url = "https://discordapp.com/developers/applications/538306821333712916/bots";
             try
-            {
-                Process.Start(url);
-            }
+            { Process.Start(url); }
             catch
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -241,29 +260,82 @@ namespace DiVA
                     Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Process.Start("xdg-open", url);
-                }
+                { Process.Start("xdg-open", url); }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start("open", url);
-                }
+                { Process.Start("open", url); }
                 else
-                {
-                    throw;
-                }
+                { throw; }
             }
 
-            Log.Neutral("Please enter the bot's token below.", "DiVA Login");
+            Log.Neutral("Please enter the bot's token below.\n", "DiVA Login");
             string answer = Console.ReadLine();
             Configuration["tokens:discord"] = answer;
+            EditKey();
+        }
+        private void EditKey()
+        {
+            string url = "https://console.developers.google.com/apis/credentials?project=diva-discord";
+            try
+            { Process.Start(url); }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                { Process.Start("xdg-open", url); }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                { Process.Start("open", url); }
+                else
+                { throw; }
+            }
+
+            Log.Neutral("Please enter the DiVA API Key below.\n", "DiVA Login");
+            string answer = Console.ReadLine();
+            Configuration["tokens:youtube"] = answer;
             var filePath = Path.Combine(AppContext.BaseDirectory, "config.json");
-            object config = new DiVAConfiguration(Configuration["prefix"], new Tokens(Configuration["tokens:discord"]));
+            object config = new DiVAConfiguration(Configuration["prefix"], new Tokens(Configuration["tokens:discord"], Configuration["tokens:youtube"]));
             var json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.Delete(filePath);
             File.WriteAllText(filePath, json);
         }
 
+        private void CacheCleanup()
+        {
+            try
+            {
+                string cachePath = Path.Combine(AppContext.BaseDirectory, "Songs");
+                DirectoryInfo d = new DirectoryInfo(cachePath);
+                Log.Information($"Searching for files in folder \n{cachePath}", "DiVA Login");
+                if (d.GetFiles().Length > 0)
+                {
+                    Log.Information($"Found {d.GetFiles().Length} files : ", "DiVA Login");
+                    foreach (FileInfo file in d.GetFiles())
+                    { Log.Information($"\tFile {file.Name}", "DiVA Login"); }
+
+                    Log.Neutral("Do you want to erase all cache ? (Y/n)\n", "DiVA Login");
+                    var answer = Console.ReadKey();
+                    Log.Neutral("", "DiVA Login");
+                    if (answer.Key == ConsoleKey.Enter || answer.Key == ConsoleKey.Y)
+                    {
+                        Log.Information("Deleting files... Please wait...", "DiVA Login");
+                        foreach (FileInfo file in d.GetFiles())
+                        { file.Delete(); }
+                        Log.Information("Proceeding with launch.", "DiVA Login");
+                    }
+                    else
+                    { Log.Information("Keeping cache files. Proceeding with launch...", "DiVA Login"); }
+                }
+                else
+                { Log.Information("No file found. Proceeding with launch...", "DiVA Login"); }
+            }
+            catch (DirectoryNotFoundException)
+            { Log.Information($"No cache folder detected... Proceeding with launch...", "DiVA Login"); }
+            catch (Exception e)
+            { Log.Error($"An error occured. Please check and remove the cache manually : \n{e.Message}", "DiVA Login"); }
+        }
 
         public void SetDefaultStatus()
         { client.SetGameAsync($"Discord Virtual Assistant or DiVA v{GetVersion()}"); }

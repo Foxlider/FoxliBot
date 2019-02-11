@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using DiVA.Helpers;
 using DiVA.Services;
 using DiVA.Services.YouTube;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -372,9 +372,53 @@ namespace DiVA.Modules
             finally
             { await Context.Message.DeleteAsync(); }
         }
+        #endregion roll
+
+        #region pvroll
+        /// <summary>
+        /// Command pvroll
+        /// </summary>
+        /// <param name="dice">string of the dices (ex. 1d10)</param>
+        /// <returns></returns>
+        [Command("pvroll"), Summary("Secretly olls a dice")]
+        [Alias("pvr")]
+        public async Task PrivateRoll(string dice)
+        {
+            try
+            {
+                var result = dice
+                    .Split('d')
+                    .Select(input =>
+                    {
+                        int? output = null;
+                        if (int.TryParse(input, out var parsed))
+                        {
+                            output = parsed;
+                        }
+                        return output;
+                    })
+                    .Where(x => x != null)
+                    .Select(x => x.Value)
+                    .ToArray();
+                string msg = $"{Context.User.Mention} rolled {result[0]}d{result[1]}";
+                var range = Enumerable.Range(0, result[0]);
+                int[] dices = new int[result[0]];
+                Random _rnd = new Random();
+                foreach (var r in range)
+                { dices[r] = _rnd.Next(1, result[1]); }
+                msg += "\n [ **";
+                msg += string.Join("** | **", dices);
+                msg += "** ]";
+                await Context.User.SendMessageAsync(msg);
+            }
+            catch
+            { await Context.User.SendMessageAsync("C'est con mais j'ai pas compris..."); }
+            finally
+            { await Context.Message.DeleteAsync(); }
+        }
 
         #endregion roll
-        
+
         #region status
         /// <summary>
         /// COmmand status
@@ -395,7 +439,11 @@ namespace DiVA.Modules
         #endregion status
 
         #region cmdtest
-
+        /// <summary>
+        /// Tests the console
+        /// </summary>
+        /// <param name="stat"></param>
+        /// <returns></returns>
         [Command("consoletest")]
         [Summary("TestConsole")]
         public async Task ConsoleTest(string stat = "")
@@ -453,12 +501,12 @@ namespace DiVA.Modules
                 //    return;
                 //}
                 DownloadedVideo video = await YouTubeDownloadService.GetVideoData(url);
+                await Context.Message.DeleteAsync();
                 if (!File.Exists(Path.Combine("Songs", $"{video.DisplayID}.mp3")))
                 {
                     var downloadAnnouncement = await ReplyAsync($"{Context.User.Mention} attempting to download {url}");
                     video = await YoutubeDownloadService.DownloadVideo(video);
                     await downloadAnnouncement.DeleteAsync();
-                    await Context.Message.DeleteAsync();
                 }
 
                 if (video == null)
@@ -603,8 +651,9 @@ namespace DiVA.Modules
         [Summary("Skips current song")]
         public async Task SkipSong()
         {
-            SongService.Next();
+            SongService.Next(Context.Guild.Id);
             await ReplyAsync("Skipped song");
+            await Context.Message.DeleteAsync();
         }
         #endregion
 
@@ -655,8 +704,101 @@ namespace DiVA.Modules
         }
         #endregion
 
+        
 
         #endregion
     }
+
+    #region cache
+    /// <summary>
+    /// Cache handler group
+    /// </summary>
+    [Group("cache")]
+    [RequireUserPermission(GuildPermission.ManageGuild)]
+    public class Cache : ModuleBase
+    {
+        #region cache list
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("list"), Summary("Displays the list of cached videos")]
+        public async Task DisplayList()
+        {
+            try
+            {
+                string cachePath = Path.Combine(AppContext.BaseDirectory, "Songs");
+                if (File.Exists(Path.Combine(cachePath, "songlist.cache")))
+                {
+                    var builder = new EmbedBuilder();
+                    builder.WithTitle($"**Cached song list**");
+                    builder.WithDescription($"List of songs downloaded\n");
+                    foreach (var line in File.ReadAllLines(Path.Combine(cachePath, "songlist.cache")))
+                    {
+                        var filename = line.Split(",").Last().Trim(';');
+                        var title = line.Substring(0, line.Length-(filename.Length + 2));
+                        var field = new EmbedFieldBuilder
+                        {
+                            IsInline = false,
+                            Name = filename,
+                            Value = title
+                        };
+                        builder.AddField(field);
+                    }
+
+                    builder.WithColor(Color.Blue);
+                    var embed = builder.Build();
+                    if (File.ReadAllLines(Path.Combine(cachePath, "songlist.cache")).Length <= 5)
+                    { await Context.Channel.SendMessageAsync("", false, embed); }
+                    else
+                    { await Context.User.SendMessageAsync("", false, embed); } //Send to user to avoid flood
+                }
+                else
+                { await Context.Channel.SendMessageAsync("No music have been downloaded yet"); }
+            }
+            finally
+            { await Context.Message.DeleteAsync(); }
+        }
+        #endregion
+
+        #region cache delete
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Command("delete"), Summary("Delete cache files")]
+        public async Task Delete(string input=null)
+        {
+            string cachePath = Path.Combine(AppContext.BaseDirectory, "Songs");
+            DirectoryInfo d = new DirectoryInfo(cachePath);
+            if (d.GetFiles().Length > 0)
+            {
+                if (input == null)
+                {
+                    foreach (FileInfo file in d.GetFiles())
+                    { file.Delete(); }
+                }
+                else
+                {
+                    var hasDeleted = false;
+                    foreach (FileInfo file in d.GetFiles())
+                    {
+                        if (file.Name == input)
+                        {
+                            file.Delete();
+                            await Context.User.SendMessageAsync($"File {input}.mp3 deleted.");
+                            hasDeleted = true;
+                            break;
+                        }
+                    }
+                    if (!hasDeleted)
+                    { await Context.User.SendMessageAsync($"No file have been found under the name {input}"); }
+                }
+            }
+            await Context.Message.DeleteAsync();
+        }
+        #endregion
+    }
+    #endregion
 
 }

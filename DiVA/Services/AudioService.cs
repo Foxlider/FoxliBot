@@ -1,9 +1,9 @@
 ﻿using Discord;
-using Discord.Audio;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiVA.Services
@@ -185,8 +185,12 @@ namespace DiVA.Services
         /// <summary>
         /// Skips current song
         /// </summary>
-        public void Next()
-        { AudioPlaybackService.StopCurrentOperation(); }
+        public void Next(ulong Id)
+        {
+            ConnectedChannels.TryGetValue(Id, out VoiceConnexion voice);
+            voice.Queue.Remove(voice.Queue.FirstOrDefault());
+            AudioPlaybackService.StopCurrentOperation();
+        }
 
         /// <summary>
         /// Clear queue
@@ -265,9 +269,12 @@ namespace DiVA.Services
                 try
                 {
                     await messageChannel?.SendMessageAsync($"Now playing **{NowPlaying.Title}** | `{NowPlaying.DurationString}` | requested by {NowPlaying.Requester}");
-                    await AudioPlaybackService.SendAsync(voice.Client, NowPlaying.Uri, NowPlaying.Speed);
+                    await voice.Client.SetSpeakingAsync(true);
+                    await AudioPlaybackService.SendAsync(voice.Client, NowPlaying.FullPath);
+                    await voice.Client.SetSpeakingAsync(false);
                     voice.Queue.Remove(NowPlaying);
                     NowPlaying.OnPostPlay();
+                    Thread.Sleep(1000);
                 }
                 catch (Exception e)
                 { Log.Warning($"Error while playing song: {e}", "Audio Queue"); }

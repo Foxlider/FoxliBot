@@ -62,9 +62,23 @@
             <param name="dice">string of the dices (ex. 1d10)</param>
             <returns></returns>
         </member>
+        <member name="M:DiVA.Modules.Common.PrivateRoll(System.String)">
+            <summary>
+            Command pvroll
+            </summary>
+            <param name="dice">string of the dices (ex. 1d10)</param>
+            <returns></returns>
+        </member>
         <member name="M:DiVA.Modules.Common.Status(System.String)">
             <summary>
             COmmand status
+            </summary>
+            <param name="stat"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DiVA.Modules.Common.ConsoleTest(System.String)">
+            <summary>
+            Tests the console
             </summary>
             <param name="stat"></param>
             <returns></returns>
@@ -134,6 +148,23 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:DiVA.Modules.Cache">
+            <summary>
+            Cache handler group
+            </summary>
+        </member>
+        <member name="M:DiVA.Modules.Cache.DisplayList">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DiVA.Modules.Cache.Delete(System.String)">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:DiVA.DiVA.RunAsync">
             <summary>
             Main Thread
@@ -145,7 +176,7 @@
             Audio Player Service
             </summary>
         </member>
-        <member name="M:DiVA.Services.AudioPlaybackService.SendAsync(Discord.Audio.IAudioClient,System.String,System.Int32)">
+        <member name="M:DiVA.Services.AudioPlaybackService.SendAsync(Discord.Audio.IAudioClient,System.String)">
             <summary>
             Voice sender
             </summary>
@@ -159,7 +190,7 @@
             Skipper
             </summary>
         </member>
-        <member name="M:DiVA.Services.AudioPlaybackService.CreateStream(System.String,System.Int32)">
+        <member name="M:DiVA.Services.AudioPlaybackService.CreateStream(System.String)">
             <summary>
             Stream creator
             </summary>
@@ -199,7 +230,7 @@
             <param name="guild"></param>
             <returns></returns>
         </member>
-        <member name="M:DiVA.Services.AudioService.Next">
+        <member name="M:DiVA.Services.AudioService.Next(System.UInt64)">
             <summary>
             Skips current song
             </summary>
@@ -264,6 +295,11 @@
             Duration of the item as a string
             </summary>
         </member>
+        <member name="P:DiVA.Services.IPlayable.FullPath">
+            <summary>
+            FullPath of file
+            </summary>
+        </member>
         <member name="P:DiVA.Services.IPlayable.Speed">
             <summary>
             Speed of the item
@@ -298,6 +334,16 @@
             <summary>
             Represents a downloaded video.
             </summary>
+        </member>
+        <member name="M:DiVA.Services.YouTube.DownloadedVideo.#ctor(System.String,System.Int32,System.String,System.String,System.String)">
+            <summary>
+            Creates a Video
+            </summary>
+            <param name="title"></param>
+            <param name="duration"></param>
+            <param name="url"></param>
+            <param name="id"></param>
+            <param name="filename"></param>
         </member>
         <member name="P:DiVA.Services.YouTube.DownloadedVideo.Title">
             <summary>
@@ -337,6 +383,11 @@
         <member name="P:DiVA.Services.YouTube.DownloadedVideo.Uri">
             <summary>
             Returns the Filename of a file
+            </summary>
+        </member>
+        <member name="P:DiVA.Services.YouTube.DownloadedVideo.FullPath">
+            <summary>
+            Returns the full path of file
             </summary>
         </member>
         <member name="P:DiVA.Services.YouTube.DownloadedVideo.Speed">
@@ -384,6 +435,11 @@
             Stream URI
             </summary>
         </member>
+        <member name="P:DiVA.Services.YouTube.StreamMetadata.FullPath">
+            <summary>
+            Stream file full path
+            </summary>
+        </member>
         <member name="P:DiVA.Services.YouTube.StreamMetadata.Requester">
             <summary>
             Stream requester
@@ -428,7 +484,7 @@
             <summary>
             Donwload a video
             </summary>
-            <param name="url"></param>
+            <param name="video"></param>
             <returns></returns>
         </member>
         <member name="M:DiVA.Services.YouTube.YouTubeDownloadService.GetLivestreamData(System.String)">
@@ -442,7 +498,7 @@
             <summary>
             Download a Livestream
             </summary>
-            <param name="url"></param>
+            <param name="search"></param>
             <returns></returns>
         </member>
         <member name="T:DiVA.LoggingService">

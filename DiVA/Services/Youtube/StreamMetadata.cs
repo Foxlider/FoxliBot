@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Linq;
 
 namespace DiVA.Services.YouTube
@@ -41,6 +43,11 @@ namespace DiVA.Services.YouTube
         /// Stream URI
         /// </summary>
         public string Uri => Formats.First().Url;
+
+        /// <summary>
+        /// Stream file full path
+        /// </summary>
+        public string FullPath => Path.Combine(AppContext.BaseDirectory, "Songs", Uri);
 
         /// <summary>
         /// Stream requester

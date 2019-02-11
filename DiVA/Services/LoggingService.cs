@@ -116,7 +116,7 @@ namespace DiVA
 
         public static void Critical(string message, string source)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.DarkRed;
             string Severity = "Critical".PadRight(8);
             string[] lines = message.Split("\n");
             foreach (var line in lines)

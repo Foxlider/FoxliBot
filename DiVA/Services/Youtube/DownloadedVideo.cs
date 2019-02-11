@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
-using Newtonsoft.Json;
 
 namespace DiVA.Services.YouTube
 {
@@ -9,6 +9,23 @@ namespace DiVA.Services.YouTube
     /// </summary>
     public class DownloadedVideo : IPlayable
     {
+        /// <summary>
+        /// Creates a Video
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="duration"></param>
+        /// <param name="url"></param>
+        /// <param name="id"></param>
+        /// <param name="filename"></param>
+        public DownloadedVideo(string title, int duration, string url, string id, string filename)
+        {
+            this.Title = title;
+            this.Duration = duration;
+            this.Url = url;
+            this.DisplayID = id;
+            this.FileName = filename;
+        }
+
         /// <summary>
         /// Title of the video
         /// </summary>
@@ -52,7 +69,12 @@ namespace DiVA.Services.YouTube
         /// <summary>
         /// Returns the Filename of a file
         /// </summary>
-        public string Uri => FileName;
+        public string Uri => DisplayID + ".mp3";
+
+        /// <summary>
+        /// Returns the full path of file
+        /// </summary>
+        public string FullPath => Path.Combine(AppContext.BaseDirectory, "Songs", Uri);
 
         /// <summary>
         /// Speed modifier passed to ffmpeg (Frequency)
@@ -63,8 +85,6 @@ namespace DiVA.Services.YouTube
         /// After song Handler
         /// </summary>
         public void OnPostPlay()
-        {
-            //File.Delete(Uri); //Comment this to ceep cached videos
-        }
+        { /*File.Delete(Uri); //Comment this to ceep cached videos */ }
     }
 }
